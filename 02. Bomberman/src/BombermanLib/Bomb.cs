@@ -1,17 +1,15 @@
 ﻿namespace BombermanLib
 {
-    public struct Bomb
+    public class Bomb
     {
         public readonly int Number;
         public int Turns;
-        public readonly int X;
-        public readonly int Y;
+        public readonly Vector Position;
 
-        public Bomb(int number, int x, int y)
+        public Bomb(int number, Vector position)
         {
             Number = number;
-            X = x;
-            Y = y;
+            Position = position;
             Turns = 5;
         }
     }

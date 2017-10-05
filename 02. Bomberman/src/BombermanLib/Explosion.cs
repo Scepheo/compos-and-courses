@@ -1,10 +1,10 @@
 ﻿namespace BombermanLib
 {
-    public class Box
+    public class Explosion
     {
         public readonly Vector Position;
 
-        public Box(Vector position)
+        public Explosion(Vector position)
         {
             Position = position;
         }

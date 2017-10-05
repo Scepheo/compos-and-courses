@@ -1,16 +1,16 @@
 ﻿namespace BombermanLib
 {
-    public struct Player
+    public class Player
     {
         public readonly int Number;
-        public readonly int X;
-        public readonly int Y;
+        public Vector Position;
+        public bool Dead;
 
-        public Player(int number, int x, int y)
+        public Player(int number, Vector position)
         {
             Number = number;
-            X = x;
-            Y = y;
+            Position = position;
+            Dead = false;
         }
     }
 }

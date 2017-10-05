@@ -40,15 +40,17 @@ namespace BombermanServer
 
                 for (var x = 0; x < Width; x++)
                 {
+                    var position = new Vector(x, y);
+
                     if (_level.Walls[x, y])
                     {
                         line.Append('#');
                     }
-                    else if (_level.Players.FirstOrDefault(p => p.X == x && p.Y == y) is var player)
+                    else if (_level.Players.FirstOrDefault(p => p.Position == position) is var player)
                     {
                         line.Append(player.Number);
                     }
-                    else if (_level.Boxes.Any(b => b.X == x && b.Y == y))
+                    else if (_level.Boxes.Any(b => b.Position == position))
                     {
                         line.Append('X');
                     }
@@ -64,8 +66,14 @@ namespace BombermanServer
 
         public string[] Step(string[] messages)
         {
-            // TODO
-            return new string[0];
+            var results = _level.Step(messages);
+
+            for (var i = 0; i < results.Length; i++)
+            {
+                results[i] = $"{i + 1} {results[i]}";
+            }
+
+            return results;
         }
     }
 }
