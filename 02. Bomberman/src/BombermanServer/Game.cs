@@ -16,11 +16,13 @@ namespace BombermanServer
         public int MaximumTurns { get; }
 
         private Level _level;
+        private int _turnsLeft;
 
         public Game(int players, int maximumTurns, int width, int height)
         {
             Players = players;
             MaximumTurns = maximumTurns;
+            _turnsLeft = maximumTurns;
             _level = Level.TestLevel();
             Width = _level.Walls.GetLength(0);
             Height = _level.Walls.GetLength(1);
@@ -71,6 +73,21 @@ namespace BombermanServer
             for (var i = 0; i < results.Length; i++)
             {
                 results[i] = $"{i + 1} {results[i]}";
+            }
+
+            _turnsLeft--;
+            var alivePlayers = _level.Players.Count(player => !player.Dead);
+
+            if (_turnsLeft == 0 || alivePlayers == 0)
+            {
+                Running = false;
+                Tie = true;
+            }
+            else if (alivePlayers == 1)
+            {
+                Running = false;
+                Tie = false;
+                Winner = _level.Players.First(player => !player.Dead).Number;
             }
 
             return results;

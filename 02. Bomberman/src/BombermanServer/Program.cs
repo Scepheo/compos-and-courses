@@ -21,13 +21,18 @@ namespace BombermanServer
                     var messages = clientPool.ReceiveMessages();
                     var resultMessages = game.Step(messages);
 
-                    clientPool.SendMessages(Message.Update, resultMessages.Length);
-
-                    foreach (var resultMessage in resultMessages)
+                    if (game.Running)
                     {
-                        clientPool.SendMessages(resultMessage);
+                        clientPool.SendMessages(Message.Update, resultMessages.Length);
+
+                        foreach (var resultMessage in resultMessages)
+                        {
+                            clientPool.SendMessages(resultMessage);
+                        }
                     }
                 }
+
+                clientPool.SendMessages(Message.End);
 
                 if (game.Tie)
                 {

@@ -89,7 +89,7 @@ the resulting explosion (indicated with `*`) would be:
 ##########
 #        #
 #  ###   #
-# *****  #
+# ****   #
 #   *    #
 #   *    #
 #        #
