@@ -8,9 +8,9 @@ namespace BombermanServer
     {
         public int Index { get; }
 
-        private TcpClient _tcpClient;
-        private TextReader _reader;
-        private TextWriter _writer;
+        private readonly TcpClient _tcpClient;
+        private readonly TextReader _reader;
+        private readonly TextWriter _writer;
 
         private bool _connected;
 
@@ -36,7 +36,7 @@ namespace BombermanServer
                 _writer.WriteLine(message);
                 _writer.Flush();
             }
-            catch (SocketException)
+            catch (Exception)
             {
                 _connected = false;
             }

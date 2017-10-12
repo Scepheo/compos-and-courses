@@ -1,13 +1,16 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Net.Sockets;
 
 namespace BombermanClient
 {
-    internal class Server
+    internal class Server : IDisposable
     {
-        private TcpClient _tcpClient;
-        private TextReader _reader;
-        private TextWriter _writer;
+        private readonly TcpClient _tcpClient;
+        private readonly TextReader _reader;
+        private readonly TextWriter _writer;
+
+        public bool Connected { get; private set; } = true;
 
         public Server()
         {
@@ -20,13 +23,39 @@ namespace BombermanClient
 
         public void SendMessage(string message)
         {
-            _writer.WriteLine(message);
-            _writer.Flush();
+            if (!Connected) return;
+
+            try
+            {
+                _writer.WriteLine(message);
+                _writer.Flush();
+            }
+            catch (Exception)
+            {
+                Connected = false;
+            }
         }
 
         public string ReceiveMessage()
         {
-            return _reader.ReadLine();
+            if (!Connected) return string.Empty;
+
+            try
+            {
+                return _reader.ReadLine();
+            }
+            catch (SocketException)
+            {
+                Connected = false;
+                return string.Empty;
+            }
+        }
+
+        public void Dispose()
+        {
+            _tcpClient.Dispose();
+            _reader.Dispose();
+            _writer.Dispose();
         }
     }
 }

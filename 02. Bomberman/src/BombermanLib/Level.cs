@@ -14,40 +14,77 @@ namespace BombermanLib
 
         private Level() { }
 
-        public static Level TestLevel()
+        public static Level Generate(int width, int height)
         {
-            const bool X = true;
-            const bool _ = false;
+            var walls = new bool[width, height];
+            var xMax = width - 1;
+            var yMax = height - 1;
+
+            // Create walls around the level perimeter
+            for (var x = 0; x < width; x++)
+            {
+                walls[x, 0] = true;
+                walls[x, yMax] = true;
+            }
+
+            for (var y = 1; y < yMax; y++)
+            {
+                walls[0, y] = true;
+                walls[xMax, y] = true;
+            }
+
+            // Create walls in dot patterns
+            for (var x = 2; x < xMax; x += 2)
+            for (var y = 2; y < yMax; y += 2)
+            {
+                walls[x, y] = true;
+            }
+
+            // Place players in corners
+            var players = new List<Player>
+            {
+                new Player(1, new Vector(1, 1)),
+                new Player(2, new Vector(xMax - 1, 1)),
+                new Player(3, new Vector(1, yMax - 1)),
+                new Player(4, new Vector(xMax - 1, yMax - 1))
+            };
+
+            // Place boxes in semi-random patterns
+            var random = new Random();
+            var boxes = new List<Box>();
+
+            var xLimit = width / 2 + 1;
+            var yLimit = height / 2 + 1;
+
+            for (var x = 1; x < xLimit; x++)
+            {
+                for (var y = 1; y < yLimit; y++)
+                {
+                    // Don't place a box if it's too close to the player
+                    if (x + y < 4) continue;
+
+                    // Do place a box if we're near the center cross
+                    var mustPlace = x >= xLimit - 1 || y >= yLimit - 1;
+
+                    // Otherwise, place a box with random chance
+                    const double chance = 0.5;
+                    if (mustPlace || random.NextDouble() < chance)
+                    {
+                        boxes.Add(new Box(new Vector(x, y)));
+                        boxes.Add(new Box(new Vector(xMax - x, y)));
+                        boxes.Add(new Box(new Vector(x, yMax - y)));
+                        boxes.Add(new Box(new Vector(xMax - x, yMax - y)));
+                    }
+                }
+            }
 
             return new Level
             {
-                Walls = new bool[,]
-                {
-                    { X, X, X, X, X, X, X, X, X, X },
-                    { X, _, _, _, _, X, _, _, _, X },
-                    { X, _, _, _, X, X, _, _, _, X },
-                    { X, X, X, _, _, _, _, X, _, X },
-                    { X, _, X, _, _, _, _, X, X, X },
-                    { X, _, _, _, X, X, _, _, _, X },
-                    { X, _, _, _, X, _, _, _, _, X },
-                    { X, X, X, X, X, X, X, X, X, X }
-                },
-                Players = new List<Player>
-                {
-                    new Player(1, new Vector(1, 1)),
-                    new Player(2, new Vector(8, 1)),
-                    new Player(3, new Vector(1, 6)),
-                    new Player(4, new Vector(8, 6))
-                },
-                Boxes = new List<Box>
-                {
-                    new Box(new Vector(4, 3)),
-                    new Box(new Vector(5, 3)),
-                    new Box(new Vector(4, 4)),
-                    new Box(new Vector(5, 4))
-                },
                 Bombs = new List<Bomb>(),
-                Explosions = new List<Explosion>()
+                Boxes = boxes,
+                Explosions = new List<Explosion>(),
+                Players = players,
+                Walls = walls
             };
         }
 
@@ -103,6 +140,7 @@ namespace BombermanLib
                         else
                         {
                             results[i] = Message.Bomb;
+                            Bombs.Add(new Bomb(i + 1, Players[i].Position));
                         }
                         break;
                     case Message.Wait:
@@ -167,6 +205,11 @@ namespace BombermanLib
 
             foreach (var explosion in Explosions)
             {
+                if (done.Add(explosion.Position))
+                {
+                    queue.Enqueue(new MovingExplosion(explosion.Position, Vector.Zero));
+                }
+
                 foreach (var direction in Vector.Directions)
                 {
                     if (done.Add(explosion.Position + direction))
@@ -183,7 +226,6 @@ namespace BombermanLib
                 var movingExplosion = queue.Dequeue();
                 var position = movingExplosion.Position;
                 var direction = movingExplosion.Direction;
-                var canMove = direction != Vector.Zero;
 
                 Bomb hitBomb;
                 Box hitBox;

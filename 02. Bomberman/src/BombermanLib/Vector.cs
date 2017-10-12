@@ -45,7 +45,7 @@
 
         public override int GetHashCode()
         {
-            return unchecked((X << 16) | Y);
+            return (X << 16) | Y;
         }
 
         public static bool operator ==(Vector left, Vector right)

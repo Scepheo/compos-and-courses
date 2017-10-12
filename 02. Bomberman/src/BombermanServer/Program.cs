@@ -1,4 +1,5 @@
-﻿using BombermanLib;
+﻿using System;
+using BombermanLib;
 
 namespace BombermanServer
 {
@@ -6,7 +7,7 @@ namespace BombermanServer
     {
         private static void Main(string[] args)
         {
-            var game = new Game(4, 100, 10, 8);
+            var game = new Game(4, 100, 31, 23);
 
             using (var clientPool = new ClientPool(game.Players))
             {
@@ -29,6 +30,12 @@ namespace BombermanServer
                         {
                             clientPool.SendMessages(resultMessage);
                         }
+                    }
+
+                    Console.SetCursorPosition(0, 0);
+                    foreach (var line in game.GetLevelText())
+                    {
+                        Console.WriteLine(line);
                     }
                 }
 

@@ -1,4 +1,5 @@
-﻿using BombermanLib;
+﻿using System.Collections.Generic;
+using BombermanLib;
 using System.Linq;
 using System.Text;
 
@@ -7,15 +8,15 @@ namespace BombermanServer
     internal class Game
     {
         public bool Running { get; private set; } = true;
-        public bool Tie { get; private set; } = false;
-        public int Winner { get; private set; } = 0;
+        public bool Tie { get; private set; }
+        public int Winner { get; private set; }
 
         public int Players { get; }
         public int Width { get; }
         public int Height { get; }
         public int MaximumTurns { get; }
 
-        private Level _level;
+        private readonly Level _level;
         private int _turnsLeft;
 
         public Game(int players, int maximumTurns, int width, int height)
@@ -23,9 +24,47 @@ namespace BombermanServer
             Players = players;
             MaximumTurns = maximumTurns;
             _turnsLeft = maximumTurns;
-            _level = Level.TestLevel();
-            Width = _level.Walls.GetLength(0);
-            Height = _level.Walls.GetLength(1);
+            _level = Level.Generate(width, height);
+            Width = width;
+            Height = height;
+        }
+
+        public IEnumerable<string> GetLevelText()
+        {
+            var line = new StringBuilder();
+
+            for (var y = 0; y < Height; y++)
+            {
+                line.Clear();
+
+                for (var x = 0; x < Width; x++)
+                {
+                    var position = new Vector(x, y);
+
+                    if (_level.Walls[x, y])
+                    {
+                        line.Append('#');
+                    }
+                    else if (_level.Players.FirstOrDefault(p => p.Position == position) is Player player)
+                    {
+                        line.Append(player.Number);
+                    }
+                    else if (_level.Boxes.Any(b => b.Position == position))
+                    {
+                        line.Append('X');
+                    }
+                    else if (_level.Bombs.Any(b => b.Position == position))
+                    {
+                        line.Append('o');
+                    }
+                    else
+                    {
+                        line.Append(' ');
+                    }
+                }
+
+                yield return line.ToString();
+            }
         }
 
         public void SendInfo(ClientPool clients)
@@ -36,33 +75,9 @@ namespace BombermanServer
             clients.SendMessages(Message.Width, Width);
             clients.SendMessages(Message.Height, Height);
 
-            for (var y = 0; y < Height; y++)
+            foreach (var line in GetLevelText())
             {
-                var line = new StringBuilder();
-
-                for (var x = 0; x < Width; x++)
-                {
-                    var position = new Vector(x, y);
-
-                    if (_level.Walls[x, y])
-                    {
-                        line.Append('#');
-                    }
-                    else if (_level.Players.FirstOrDefault(p => p.Position == position) is var player)
-                    {
-                        line.Append(player.Number);
-                    }
-                    else if (_level.Boxes.Any(b => b.Position == position))
-                    {
-                        line.Append('X');
-                    }
-                    else
-                    {
-                        line.Append(' ');
-                    }
-                }
-
-                clients.SendMessages(line.ToString());
+                clients.SendMessages(line);
             }
         }
 

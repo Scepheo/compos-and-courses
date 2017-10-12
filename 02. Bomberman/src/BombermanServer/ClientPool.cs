@@ -8,7 +8,7 @@ namespace BombermanServer
 {
     internal class ClientPool : IDisposable
     {
-        private Client[] _clients;
+        private readonly Client[] _clients;
 
         public ClientPool(int clientCount)
         {
@@ -20,12 +20,17 @@ namespace BombermanServer
             var tcpListener = new TcpListener(new IPAddress(0x0100007F), 12345);
             tcpListener.Start();
 
-            for (var index = 0; index < _clients.Length; index++)
-            {
-                var tcpClient = tcpListener.AcceptTcpClient();
-                _clients[index] = new Client(index, tcpClient);
-                _clients[index].SendMessage(Message.Acknowledge);
-            }
+            Parallel.For(
+                0,
+                _clients.Length,
+                index =>
+                {
+                    {
+                        var tcpClient = tcpListener.AcceptTcpClient();
+                        _clients[index] = new Client(index, tcpClient);
+                        _clients[index].SendMessage(Message.Acknowledge);
+                    }
+                });
 
             tcpListener.Stop();
         }
