@@ -30,7 +30,8 @@ namespace Sokoban
             Width = items.GetLength(0);
             Height = items.GetLength(1);
             _tileMap = new TileMap(items);
-            (_entities, _player) = GetEntities(items);
+            _entities = GetEntities(items);
+            _player = GetPlayer(_entities);
         }
 
         public void Step()
@@ -153,41 +154,25 @@ namespace Sokoban
             }
         }
 
-        private (EntityBase[] entities, Player player) GetEntities(Item[,] items)
+        private IEnumerable<MapVector> GetPositions() =>
+            from x in Enumerable.Range(0, Width)
+            from y in Enumerable.Range(0, Height)
+            select new MapVector(x, y);
+
+        private EntityBase[] GetEntities(Item[,] items)
         {
             var entityList = new List<EntityBase>();
-            Player player = null;
 
-            for (var x = 0; x < Width; x++)
+            foreach (var (x, y) in GetPositions())
             {
-                for (var y = 0; y < Height; y++)
+                var item = items[x, y];
+
+                var position = new MapVector(x, y);
+
+                if (EntityFactory.TryCreateEntity(item, position, out var entity))
                 {
-                    var item = items[x, y];
-
-                    var position = new MapVector(x, y);
-
-                    if (EntityFactory.TryCreateEntity(item, position, out var entity))
-                    {
-                        entityList.Add(entity);
-
-                        if (entity is Player entityPlayer)
-                        {
-                            if (player == null)
-                            {
-                                player = entityPlayer;
-                            }
-                            else
-                            {
-                                throw new InvalidOperationException("Multiple players in level");
-                            }
-                        }
-                    }
+                    entityList.Add(entity);
                 }
-            }
-
-            if (player == null)
-            {
-                throw new InvalidOperationException("No player in level");
             }
 
             int CompareLayer(EntityBase left, EntityBase right) => left.TopLayer == right.TopLayer
@@ -198,7 +183,22 @@ namespace Sokoban
 
             entityList.Sort(CompareLayer);
 
-            return (entityList.ToArray(), player);
+            return entityList.ToArray();
         }
+
+        private static Player GetPlayer(EntityBase[] entities)
+        {
+            var players = entities.OfType<Player>().ToArray();
+
+            switch (players.Length)
+            {
+                case 0:
+                    throw new InvalidOperationException("No player in level");
+                case 1:
+                    return players[0];
+                default:
+                    throw new InvalidOperationException("More than one player in level");
+            }
+    }
     }
 }

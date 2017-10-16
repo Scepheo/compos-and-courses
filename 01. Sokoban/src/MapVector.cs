@@ -22,5 +22,11 @@
 
         public static bool operator ==(MapVector left, MapVector right) => left.X == right.X && left.Y == right.Y;
         public static bool operator !=(MapVector left, MapVector right) => left.X != right.X || left.Y != right.Y;
+
+        public void Deconstruct(out int x, out int y)
+        {
+            x = X;
+            y = Y;
+        }
     }
 }
