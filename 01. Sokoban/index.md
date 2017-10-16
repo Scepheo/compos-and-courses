@@ -1,5 +1,7 @@
 # Sokoban course
 
+For the actual course itself, see [the readme](course/readme.md).
+
 ## Included features
 
 | Version | Feature                                       | Discuss | Where                                              |
@@ -32,4 +34,3 @@ For the course:
 * Seperate rendering and other "implementation details" out from user code
 * Decide order of features
 * Write out course
-* Create starting solution
