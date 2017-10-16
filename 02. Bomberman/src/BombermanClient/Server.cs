@@ -44,7 +44,7 @@ namespace BombermanClient
             {
                 return _reader.ReadLine();
             }
-            catch (SocketException)
+            catch (Exception)
             {
                 Connected = false;
                 return string.Empty;

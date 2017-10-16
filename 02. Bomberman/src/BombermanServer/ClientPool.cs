@@ -17,7 +17,7 @@ namespace BombermanServer
 
         public void AwaitConnections()
         {
-            var tcpListener = new TcpListener(new IPAddress(0x0100007F), 12345);
+            var tcpListener = new TcpListener(IPAddress.Any, Config.Port);
             tcpListener.Start();
 
             Parallel.For(

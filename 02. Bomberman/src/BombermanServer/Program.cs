@@ -7,7 +7,9 @@ namespace BombermanServer
     {
         private static void Main(string[] args)
         {
-            var game = new Game(4, 100, 31, 23);
+            Config.Parse(args);
+
+            var game = new Game(4, Config.Turns, Config.Width, Config.Height);
 
             using (var clientPool = new ClientPool(game.Players))
             {

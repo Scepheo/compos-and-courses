@@ -53,7 +53,7 @@ namespace BombermanServer
             {
                 return _reader.ReadLine();
             }
-            catch (SocketException)
+            catch (Exception)
             {
                 _connected = false;
                 return string.Empty;
