@@ -10,10 +10,14 @@ open `src/Sokoban.sln`.
 The title of each segment links to the release information on the feature, click those to get the
 information on the feature straight from the horse's mouth. And as always, google is your friend.
 
-## [`nameof` expressions (C# 6)][nameof]
+## 1. [`nameof` expressions (C# 6)][nameof]
 
 We will be using these for the purpose of exceptions. In `Level.cs`, add a check to the constructor
-to throw an exception if `null` is passed to the constructor, or an invalid direction is passed to
-`HandleMovement`.
+to throw an exception if `null` is passed to the constructor.
+
+## 2. [String Interpolation][string_interpolation]
+
+String interpolation is also useful for exceptions, primarily the message. Use this and a `nameof` expression to throw an exception if the direction passed to `HandleMovement` in `Level.cs` is invalid.
 
 [nameof]: https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-6#nameof-expressions
+[string_interpolation]: https://docs.microsoft.com/en-us/dotnet/csharp/whats-new/csharp-6#string-interpolation

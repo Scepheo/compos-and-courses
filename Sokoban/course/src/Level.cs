@@ -22,6 +22,7 @@ namespace Sokoban
 
         public Level(Item[,] items)
         {
+            // TODO: Assignment 1
             Width = items.GetLength(0);
             Height = items.GetLength(1);
             _tileMap = new TileMap(items);
@@ -61,6 +62,9 @@ namespace Sokoban
                     break;
                 case Direction.Right:
                     (xSpeed, ySpeed) = (Speed, 0);
+                    break;
+                default:
+                    // TODO: Assignment 2
                     break;
             }
 
