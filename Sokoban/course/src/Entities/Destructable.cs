@@ -14,9 +14,10 @@ namespace Sokoban.Entities
             DestructableImage = SpriteSheet.GetImage(initialSprite);
         }
 
-        protected override Image Image => DestructableImage;
-        public override bool IsSolid => _solid;
-        public override bool IsMovable => _movable;
+        // TODO: Assignment 5
+        protected override Image Image { get { return DestructableImage; } }
+        public override bool IsSolid  { get { return _solid; } }
+        public override bool IsMovable { get { return _movable; } }
 
         public void Destroy()
         {

@@ -6,10 +6,12 @@ namespace Sokoban.Entities
     public abstract class EntityBase
     {
         protected abstract Image Image { get; }
-        public virtual bool TopLayer { get; } = true;
 
-        public virtual bool IsSolid { get; } = true;
-        public virtual bool IsMovable { get; } = true;
+        // TODO: Assignment 4
+        public virtual bool TopLayer { get; }
+
+        public virtual bool IsSolid { get; }
+        public virtual bool IsMovable { get; }
 
         public EntityVector Position { get; private set; }
 
@@ -18,6 +20,12 @@ namespace Sokoban.Entities
         protected EntityBase(MapVector position)
         {
             Position = position.ToEntityVector();
+
+            // TODO: Assignment 4
+            // Set the defaults
+            TopLayer = true;
+            IsSolid = true;
+            IsMovable = true;
         }
 
         public bool Moving => _velocity != EntityVector.Zero;
@@ -47,14 +55,22 @@ namespace Sokoban.Entities
         protected event OverlapHandler OnOverlapStart;
         protected event OverlapHandler OnOverlapEnd;
 
+        // TODO: Assignment 6
         public void TriggerOverlapStart(EntityBase other, IEnumerable<EntityBase> allEntities)
         {
-            OnOverlapStart?.Invoke(other, allEntities);
+            if (OnOverlapStart != null)
+            {
+                OnOverlapStart.Invoke(other, allEntities);
+            }
         }
 
+        // TODO: Assignment 6
         public void TriggerOverlapEnd(EntityBase other, IEnumerable<EntityBase> allEntities)
         {
-            OnOverlapEnd?.Invoke(other, allEntities);
+            if (OnOverlapEnd != null)
+            {
+                OnOverlapEnd.Invoke(other, allEntities);
+            }
         }
     }
 }

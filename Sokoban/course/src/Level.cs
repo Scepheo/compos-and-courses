@@ -12,8 +12,24 @@ namespace Sokoban
         public const int TileSize = 64;
         private const int Speed = 4;
 
-        public int Height { get; }
-        public int Width { get; }
+        // TODO: Assignment 3
+        private readonly int _width, _height;
+
+        public int Height
+        {
+            get
+            {
+                return _height;
+            }
+        }
+
+        public int Width
+        {
+            get
+            {
+                return _width;
+            }
+        }
 
         private readonly TileMap _tileMap;
         private readonly EntityBase[] _entities;
@@ -23,8 +39,10 @@ namespace Sokoban
         public Level(Item[,] items)
         {
             // TODO: Assignment 1
-            Width = items.GetLength(0);
-            Height = items.GetLength(1);
+            // TODO: Assignment 3
+            _width = items.GetLength(0);
+            _height = items.GetLength(1);
+
             _tileMap = new TileMap(items);
             _entities = GetEntities(items);
             _player = GetPlayer(_entities);
@@ -131,7 +149,12 @@ namespace Sokoban
             _eventQueue.QueueOverlapEnd(movable, obstacles.Where(obstacle => obstacle != movable));
         }
 
-        public bool IsCompleted() => !_player.Moving && _entities.OfType<Robot>().All(robot => robot.Charging);
+
+        // TODO: Assignment 5
+        public bool IsCompleted()
+        {
+            return !_player.Moving && _entities.OfType<Robot>().All(robot => robot.Charging);
+        }
 
         private EntityBase[] FindEntities(MapVector position)
         {
@@ -148,11 +171,15 @@ namespace Sokoban
             }
         }
 
-        private IEnumerable<MapVector> GetPositions() =>
-            from x in Enumerable.Range(0, Width)
-            from y in Enumerable.Range(0, Height)
-            select new MapVector(x, y);
-
+        // TODO: Assignment 5
+        private IEnumerable<MapVector> GetPositions()
+        {
+            return
+                from x in Enumerable.Range(0, Width)
+                from y in Enumerable.Range(0, Height)
+                select new MapVector(x, y);
+        }
+        
         private EntityBase[] GetEntities(Item[,] items)
         {
             var entityList = new List<EntityBase>();
@@ -168,7 +195,7 @@ namespace Sokoban
                     entityList.Add(entity);
                 }
             }
-
+            
             int CompareLayer(EntityBase left, EntityBase right) => left.TopLayer == right.TopLayer
                 ? 0
                 : right.TopLayer
