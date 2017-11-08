@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("sokoban")]
+[assembly: AssemblyTitle("Sokoban")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Rabobank International")]
-[assembly: AssemblyProduct("sokoban")]
+[assembly: AssemblyProduct("Sokoban")]
 [assembly: AssemblyCopyright("Copyright © Rabobank International 2017")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]

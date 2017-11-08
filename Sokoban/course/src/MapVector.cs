@@ -16,7 +16,18 @@
         public static MapVector operator +(MapVector left, MapVector right)
             => new MapVector(left.X + right.X, left.Y + right.Y);
 
-        public override bool Equals(object obj) => obj is MapVector other && other.X == X && other.Y == Y;
+        // TODO: Assignment 8
+        public override bool Equals(object obj)
+        {
+            if (obj.GetType() != typeof(MapVector))
+            {
+                return false;
+            }
+
+            var other = (MapVector)obj;
+            return other.X == X && other.Y == Y;
+        }
+
         public override int GetHashCode() => (X << 16) | Y;
         public override string ToString() => $"({X}, {Y})";
 

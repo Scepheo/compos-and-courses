@@ -65,24 +65,31 @@ namespace Sokoban
                 return;
             }
 
+            // TODO: Assignment 7
             int xSpeed, ySpeed;
 
             switch (direction)
             {
                 case Direction.Up:
-                    (xSpeed, ySpeed) = (0, -Speed);
+                    xSpeed = 0;
+                    ySpeed = -Speed;
                     break;
                 case Direction.Down:
-                    (xSpeed, ySpeed) = (0, Speed);
+                    xSpeed = 0;
+                    ySpeed = Speed;
                     break;
                 case Direction.Left:
-                    (xSpeed, ySpeed) = (-Speed, 0);
+                    xSpeed = -Speed;
+                    ySpeed = 0;
                     break;
                 case Direction.Right:
-                    (xSpeed, ySpeed) = (Speed, 0);
+                    xSpeed = Speed;
+                    ySpeed = 0;
                     break;
                 default:
                     // TODO: Assignment 2
+                    xSpeed = 0;
+                    ySpeed = 0;
                     break;
             }
 
@@ -184,27 +191,39 @@ namespace Sokoban
         {
             var entityList = new List<EntityBase>();
 
-            foreach (var (x, y) in GetPositions())
+            foreach (var position in GetPositions())
             {
-                var item = items[x, y];
+                var item = items[position.X, position.Y];
 
-                var position = new MapVector(x, y);
+                // TODO: Assignment 9
+                EntityBase entity;
 
-                if (EntityFactory.TryCreateEntity(item, position, out var entity))
+                if (EntityFactory.TryCreateEntity(item, position, out entity))
                 {
                     entityList.Add(entity);
                 }
             }
-            
-            int CompareLayer(EntityBase left, EntityBase right) => left.TopLayer == right.TopLayer
-                ? 0
-                : right.TopLayer
-                    ? -1
-                    : 1;
 
             entityList.Sort(CompareLayer);
 
             return entityList.ToArray();
+        }
+
+        // TODO: Assignment 10
+        private static int CompareLayer(EntityBase left, EntityBase right)
+        {
+            if (left.TopLayer == right.TopLayer)
+            {
+                return 0;
+            }
+            else if (right.TopLayer)
+            {
+                return -1;
+            }
+            else
+            {
+                return 1;
+            }
         }
 
         private static Player GetPlayer(EntityBase[] entities)

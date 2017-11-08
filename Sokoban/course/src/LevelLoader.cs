@@ -29,9 +29,20 @@ namespace Sokoban
             return new Level(items);
         }
 
-        private static Item GetItem(char character) => Data.CharacterItemMap.TryGetValue(character, out var item)
-                ? item
-                : throw new ArgumentException($"Invalid item character '{character}'", nameof(character));
+        // TODO: Assignment 11
+        private static Item GetItem(char character)
+        {
+            Item item;
+
+            if (Data.CharacterItemMap.TryGetValue(character, out item))
+            {
+                return item;
+            }
+            else
+            {
+                throw new ArgumentException($"Invalid item character '{character}'", nameof(character));
+            }
+        }
 
         private static string[] LoadFile(string name)
         {

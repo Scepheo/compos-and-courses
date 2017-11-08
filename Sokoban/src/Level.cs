@@ -44,6 +44,11 @@ namespace Sokoban
             _eventQueue.Update(_player, _entities);
         }
 
+        private static readonly (int x, int y) Up = (0, -Speed);
+        private static readonly (int x, int y) Down = (0, Speed);
+        private static readonly (int x, int y) Left = (-Speed, 0);
+        private static readonly (int x, int y) Right = (Speed, 0);
+
         public void HandleMovement(Direction direction)
         {
             if (_player.Moving || !_player.Enabled)
@@ -56,16 +61,16 @@ namespace Sokoban
             switch (direction)
             {
                 case Direction.Up:
-                    (xSpeed, ySpeed) = (0, -Speed);
+                    (xSpeed, ySpeed) = Up;
                     break;
                 case Direction.Down:
-                    (xSpeed, ySpeed) = (0, Speed);
+                    (xSpeed, ySpeed) = Down;
                     break;
                 case Direction.Left:
-                    (xSpeed, ySpeed) = (-Speed, 0);
+                    (xSpeed, ySpeed) = Left;
                     break;
                 case Direction.Right:
-                    (xSpeed, ySpeed) = (Speed, 0);
+                    (xSpeed, ySpeed) = Right;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(
@@ -163,11 +168,9 @@ namespace Sokoban
         {
             var entityList = new List<EntityBase>();
 
-            foreach (var (x, y) in GetPositions())
+            foreach (var position in GetPositions())
             {
-                var item = items[x, y];
-
-                var position = new MapVector(x, y);
+                var item = items[position.X, position.Y];
 
                 if (EntityFactory.TryCreateEntity(item, position, out var entity))
                 {

@@ -26,25 +26,38 @@ namespace Sokoban.Entities
                 return;
             }
 
-            switch (other)
+            // TODO: Assignment 8
+            var bucket = other as Bucket;
+
+            if (bucket != null)
             {
-                case Bucket bucket:
-                    if (bucket.IsEmpty)
-                    {
-                        bucket.Destroy();
-                    }
-                    else
-                    {
-                        Disable();
-                        bucket.Empty();
-                    }
-                    break;
-                case Player player:
+                if (bucket.IsEmpty)
+                {
+                    bucket.Destroy();
+                }
+                else
+                {
+                    Disable();
+                    bucket.Empty();
+                }
+            }
+            else
+            {
+                var player = other as Player;
+
+                if (player != null)
+                {
                     player.Kill();
-                    break;
-                case Destructable destructable:
-                    destructable.Destroy();
-                    break;
+                }
+                else
+                {
+                    var destructable = other as Destructable;
+
+                    if (destructable != null)
+                    {
+                        destructable.Destroy();
+                    }
+                }
             }
         }
 
