@@ -202,6 +202,6 @@ namespace Sokoban
                 default:
                     throw new InvalidOperationException("More than one player in level");
             }
-    }
+        }
     }
 }

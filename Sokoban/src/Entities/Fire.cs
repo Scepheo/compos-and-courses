@@ -14,10 +14,10 @@ namespace Sokoban.Entities
         }
 
         protected override Image Image => _image;
+        public override bool TopLayer { get; } = false;
+
         public override bool IsSolid { get; } = false;
         public override bool IsMovable { get; } = false;
-
-        public override bool TopLayer { get; } = false;
 
         private void CheckDestroy(EntityBase other, IEnumerable<EntityBase> allEntities)
         {
@@ -28,22 +28,15 @@ namespace Sokoban.Entities
 
             switch (other)
             {
-                case Bucket bucket:
-                    if (bucket.IsEmpty)
-                    {
-                        bucket.Destroy();
-                    }
-                    else
-                    {
-                        Disable();
-                        bucket.Empty();
-                    }
-                    break;
-                case Player player:
-                    player.Kill();
+                case Bucket bucket when !bucket.IsEmpty:
+                    Disable();
+                    bucket.Empty();
                     break;
                 case Destructable destructable:
                     destructable.Destroy();
+                    break;
+                case Player player:
+                    player.Kill();
                     break;
             }
         }
