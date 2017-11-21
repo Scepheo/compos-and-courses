@@ -16,9 +16,9 @@ namespace Sokoban.Entities
         protected override Image Image { get; } = SpriteSheet.GetImage(Sprite.ChargingStation);
 
         // TODO: Assignment 4
-        public override bool TopLayer { get; } = false;
+        public override bool TopLayer { get; }
 
-        public override bool IsSolid { get; } = false;
-        public override bool IsMovable { get; } = false;
+        public override bool IsSolid { get; }
+        public override bool IsMovable { get; }
     }
 }
