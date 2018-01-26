@@ -88,9 +88,10 @@ namespace Sokoban
                     break;
                 default:
                     // TODO: Assignment 2
-                    xSpeed = 0;
-                    ySpeed = 0;
-                    break;
+                    throw new ArgumentOutOfRangeException(
+                        nameof(direction),
+                        direction,
+                        string.Format("Invalid direction: '{0}'", direction));
             }
 
             SetMovement(xSpeed, ySpeed);

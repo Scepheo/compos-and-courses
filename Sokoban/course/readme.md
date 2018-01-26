@@ -21,13 +21,11 @@ Open the Task List (View -> Task List) to view all of them and quickly navigate 
 ## 1. [`nameof` expressions (C# 6)][nameof-expressions]
 
 We will be using these for the purpose of exceptions. In `Level.cs`, add a check to the constructor
-to throw an exception if `null` is passed to the constructor.
+to throw an argument null exception if `null` is passed to the constructor, using `nameof` to pass the parameter name to the exception.
 
 ## 2. [String Interpolation (C# 6)][string-interpolation]
 
-String interpolation is also useful for exceptions, primarily the message. Use this and a `nameof`
-expression to replace the `default` case in `HandleMovement` in `Level.cs` and throw an exception if
-the direction passed is invalid.
+String interpolation is also useful for exceptions, primarily the message. Use this to replace the string formatting in the `default` case in `HandleMovement` in `Level.cs`.
 
 ## 3. [Read-only auto-properties (C# 6)][read-only-auto-properties]
 
@@ -38,7 +36,8 @@ replace `Width` and `Height` with get-only properties, and remove the backing fi
 
 Auto-property Initializers can be helpful for setting an initial value for a property, instead of
 doing it in the constructor. In the marked locations, refactor the constructor assignments to
-auto-property initializers.
+auto-property initializers: remove the assignments from the constructor and place them after the
+declarations of the properties.
 
 ## 5. [Expression-bodied function members (C# 6)][expression-bodied-function-members]
 
@@ -65,11 +64,20 @@ tuples.
 ## 8. [Pattern Matching (C# 7)][pattern-matching]
 
 As can be seen in `Fire.cs`, efficiently working with values of unknown type can be a bit of pain
-before C# 7. Instead, we will refactor this to use pattern matching. Replace the nested `if`/`else`
-statements with a `switch` on `other`.
+before C# 7. Instead, we will refactor this to use pattern matching. Everything after the early
+return check on `_enabled` will be replaced. Start by pattern matching on `other`:
 
-Also, in `MapVector.cs`, use pattern matching to rewrite the `Equals` method into a one-liner,
-expression-bodied form.
+``` csharp
+switch (other)
+{
+    ...
+}
+```
+
+then fill in cases for the same types as the original `as`/`if`/`else` statements.
+
+Also, in `MapVector.cs`, use the `is <type> <name>`pattern matching variant to rewrite the `Equals`
+method into a one-liner in expression-bodied form.
 
 ## 9. [`out` variables (C# 7)][out-variables]
 
