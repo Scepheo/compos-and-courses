@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27130.2036
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicContainer", "MagicContainer\MagicContainer.csproj", "{37F0AA52-30A7-48D3-9243-F5AB1C1AED9D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MagicContainer.UnitTests", "MagicContainer.UnitTests\MagicContainer.UnitTests.csproj", "{B82CF8F3-051B-4811-8FB7-B1CA38370E9D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{37F0AA52-30A7-48D3-9243-F5AB1C1AED9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{37F0AA52-30A7-48D3-9243-F5AB1C1AED9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{37F0AA52-30A7-48D3-9243-F5AB1C1AED9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{37F0AA52-30A7-48D3-9243-F5AB1C1AED9D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B82CF8F3-051B-4811-8FB7-B1CA38370E9D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B82CF8F3-051B-4811-8FB7-B1CA38370E9D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B82CF8F3-051B-4811-8FB7-B1CA38370E9D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B82CF8F3-051B-4811-8FB7-B1CA38370E9D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {03CDB66F-D4F0-4760-984A-B9607A8B412B}
+	EndGlobalSection
+EndGlobal
