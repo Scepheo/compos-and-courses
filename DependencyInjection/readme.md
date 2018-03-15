@@ -112,7 +112,7 @@ public class Computer
 
 This is a simple class that has enough dependencies to make it annoying if you'd
 have to instantiate them yourself every time. You might have noticed that
-`printer` is and interface instead of a class - I'll explain why later.
+`printer` is an interface instead of a class - I'll explain why later.
 
 For now, let's just make sure this actually compiles:
 
@@ -124,8 +124,10 @@ public class Headset { }
 public interface IPrinter { }
 ```
 
-Please don't put all of these in one file. You can, of course, but with all the
-code we'll be adding it'll end up quite a mess.
+We'll be adding code to `Headset` later, so you might want to put that in its
+own file. I'd normally recommend to put all classes (and interfaces and structs)
+in their own file, as there's always the possibility of code being added, but
+for this tutorial it doesn't really matter.
 
 ## Test Driven Development (TDD) is all the rage these days
 
@@ -154,14 +156,17 @@ public class MagicContainer
 {
     public object Resolve(Type type)
     {
+        // We'll be adding the actual code here later
+
         return null;
     }
 }
 ```
 
-Well, that test is going to fail... So, how do we solve this? We have no idea
-what `type` is going to be. In fact, in our test case it's `Screen`, and our
-library project doesn't even know that type exists!
+Well, that test is going to fail - we just return null instead of an
+instantiated object. So, how do we solve this? We have no idea what `type` is
+going to be. In fact, in our test case it's `Screen`, and our library project
+doesn't even know that type exists!
 
 This is the sort of problem you solve using a little thing called "reflection":
 code that allows you to get information about code (it can "reflect" on itself).
@@ -233,8 +238,8 @@ public void CanResolveNestedClass()
 
     Assert.NotNull(obj);
     var headset = Assert.IsType<Headset>(obj);
-    Assert.NotNull(headSet.Earphones);
-    Assert.NotNull(headSet.Microphone);
+    Assert.NotNull(headset.Earphones);
+    Assert.NotNull(headset.Microphone);
 }
 ```
 
@@ -518,8 +523,9 @@ public void Configure(Type type, params object[] arguments)
 ```
 
 Well, everything compiles again, but now the test fails. How do we fix this?
-Before building the parameter list for a type's constructor, we'll have to see
-if one has been configured. If so, use that instead of the regular parameters.
+In `Resolve`, before building the parameter list for a type's constructor, we'll
+have to see if one has been configured. If so, use that instead of the regular
+parameters.
 
 ``` csharp
 var parameterInfos = constructor.GetParameters();
