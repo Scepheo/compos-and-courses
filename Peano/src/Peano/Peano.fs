@@ -13,12 +13,12 @@ let eight = Successor seven
 let nine  = Successor eight
 let ten   = Successor nine
 
-let increment x = Successor x
+let increment = Successor
 
 let decrement x =
     match x with
     | Zero -> invalidOp "Can't subtract from zero"
-    | Successor x' -> x'
+    | Successor y -> y
 
 let rec add x y =
     match x with

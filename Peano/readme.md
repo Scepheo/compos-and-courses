@@ -275,9 +275,143 @@ The result of all this is that we can also write our `increment` method as such:
 let increment = Successor
 ```
 
+With that done, let's write a test! We're going to use a theory with some inline
+data to let us easily verify a number of test cases.
+
+``` csharp
+[Theory]
+[InlineData(0, 1)]
+[InlineData(1, 2)]
+[InlineData(10, 11)]
+public void Increment(int value, int expected)
+{
+    // Test code here
+}
+```
+
+I'll leave it to you to write the test code. It should be fairly simple: convert
+`value` to a `Number`, use `Peano.increment` to increment it, convert it back to
+an `int` and assert that it matches the expected value.
+
 ## One ~~less~~ fewer, please
 
+Decrementing is a bit more complex than incrementing. There's always two options
+when we get a number: either we get zero, or we get the successor of some
+number. We can distinguish these cases with pattern matching: we "match" the
+received value against a number of "patterns", and the first one to match is
+used. That sounds confusing, so let's see what it will look like:
 
+``` fsharp
+let decrement x =
+    match x with
+    | Zero -> // code for when x is zero
+    | Successor y -> // code for when x is a successor
+```
+
+This time we need to do something with `x`, so we can't leave it out like last
+time. You can see that we match `x` against two patterns: `Zero` and
+`Successor y`. If it matches `Zero`, that means that we cannot decrement the
+number, and we throw an `InvalidOperationException`. In F#, there's a built-in
+method to do that:
+
+``` fsharp
+let decrement x =
+    match x with
+    | Zero -> invalidOp "Can't subtract from zero"
+    | Successor y -> // code for when x is a successor
+```
+
+If `x` matches `Successor y`, that means that `x` is the successor of some
+number `y`. When this match happens, this value is "captured", which just means
+that the actual value is stored as `y`, and can be used as such. Which is handy,
+because if `x` is the successor of `y`, decrementing `x` results in `y`!
+
+``` fsharp
+let decrement x =
+    match x with
+    | Zero -> invalidOp "Can't subtract from zero"
+    | Successor y -> y
+```
+
+There's one last thing: something mathematicians do, and functional programmers
+often do too, is to reuse the same symbol when two values are related. For
+example, they might use _T_ to indicate total time, and _t_ for the current
+time. Alternatively (and more commonly), the related/derived value will have the
+same name, except with an apostrophe at the end. As such, rename `y` to `x'`.
+And yes, that's a valid variable name in F#.
+
+For the `Successor` logic, we'll be using a test very similar to the one used
+for `increment`, except with different test cases. Again, I'm leaving it up to
+you to implement the actual test.
+
+``` csharp
+[Theory]
+[InlineData(1, 0)]
+[InlineData(2, 1)]
+[InlineData(11, 10)]
+public void Decrement(int value, int expected)
+{
+    // Test code here
+}
+```
+
+However, we also have to test the zero case, where we simply assert that trying
+to decrement zero throws an exception.
+
+``` csharp
+[Fact]
+public void Decrement_Zero()
+{
+    Action action = () => Peano.decrement(Peano.Number.Zero);
+    Assert.Throws<InvalidOperationException>(action);
+}
+```
+
+Run the tests to make sure everything passes, and we're ready to move on.
+
+## Add it up
+
+Addition is even more complex than decrement, although not by much. Let's first
+go through the logic: adding one to a number is taking its successor. Adding two
+to a number is taking its successor twice. Adding three to... Well, you get the
+point. Can we generalize? Yes: adding _n_ to a number is taking its successor
+_n_ times.
+
+That's hard to program, though; we have no way of doing something _n_ times.
+However, doing something _n_ times is the same as doing it once, and then doing
+it _n - 1_ times. Unless _n_ is zero, in which case you don't do anything. That
+seems familiar...
+
+Turns out it is! Adding _a_ to _b_ is taking _b_'s successor _a_ times. Or, it's
+taking _b_'s successor once, and then adding _a - 1_ to that. Unless _a_ is
+zero, in which case we're done. Recursion is a magnificent beast.
+
+Now it's time for you to do some real thinking. Here's the layout of the
+function and its test, now it's up to you to finish the function and make the
+test pass.
+
+``` fsharp
+let rec add x y =
+    match x with
+    | Zero -> // code if x is zero
+    | Successor x' -> // code if x is successor of x'
+```
+
+``` csharp
+[Theory]
+[InlineData(0, 0, 0)]
+[InlineData(5, 0, 5)]
+[InlineData(0, 3, 3)]
+[InlineData(16, 27, 43)]
+public void Addition(int left, int right, int expected)
+{
+    var leftNumber = ToNumber(left);
+    var rightNumber = ToNumber(right);
+    var result = Peano.add(leftNumber, rightNumber);
+    var actual = ToInt(result);
+    Assert.Equal(expected, actual);
+}
+```
 
 [wiki]: https://en.wikipedia.org/wiki/Peano_axioms
 [discriminated-union]: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/discriminated-unions
