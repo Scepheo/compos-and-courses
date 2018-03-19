@@ -1,6 +1,17 @@
-module Number
+module Peano
 
 type Number = Zero | Successor of Number
+
+let one   = Successor Zero
+let two   = Successor one
+let three = Successor two
+let four  = Successor three
+let five  = Successor four
+let six   = Successor five
+let seven = Successor six
+let eight = Successor seven
+let nine  = Successor eight
+let ten   = Successor nine
 
 let increment x = Successor x
 
@@ -40,17 +51,6 @@ let rec modulo x y =
     if y = Zero then invalidOp "Can't divide by zero"
     else if lessThan x y then x
     else modulo (subtract x y) y
-
-let one   = Successor Zero
-let two   = Successor one
-let three = Successor two
-let four  = Successor three
-let five  = Successor four
-let six   = Successor five
-let seven = Successor six
-let eight = Successor seven
-let nine  = Successor eight
-let ten   = Successor nine
 
 let printDigit d =
     if      d = Zero  then "0"

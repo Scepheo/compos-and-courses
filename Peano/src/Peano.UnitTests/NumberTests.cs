@@ -1,15 +1,17 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using Xunit;
 
-namespace Peano.UnitTests
+namespace Tests
 {
     public class NumberTests
     {
-        private static int ToInt(Number.Number number)
+        private static int ToInt(Peano.Number number)
         {
             var result = 0;
 
-            while (number is Number.Number.Successor successor)
+            while (number is Peano.Number.Successor successor)
             {
                 result++;
                 number = successor.Item;
@@ -18,17 +20,49 @@ namespace Peano.UnitTests
             return result;
         }
 
-        private static Number.Number ToNumber(int i)
+        private static Peano.Number ToNumber(int i)
         {
-            var result = Number.Number.Zero;
+            var result = Peano.Number.Zero;
 
             while (i > 0)
             {
-                result = Number.Number.NewSuccessor(result);
+                result = Peano.Number.NewSuccessor(result);
                 i--;
             }
 
             return result;
+        }
+
+        public static IEnumerable<object[]> NumberData()
+        {
+            return new []
+            {
+                new object[] { 0,  Peano.Number.Zero },
+                new object[] { 1,  Peano.one },
+                new object[] { 2,  Peano.two },
+                new object[] { 3,  Peano.three },
+                new object[] { 4,  Peano.four },
+                new object[] { 5,  Peano.five },
+                new object[] { 6,  Peano.six },
+                new object[] { 7,  Peano.seven },
+                new object[] { 8,  Peano.eight },
+                new object[] { 9,  Peano.nine },
+                new object[] { 10, Peano.ten }
+            };
+        }
+
+        [Theory, MemberData(nameof(NumberData))]
+        public void NumberToInt(int expectedInt, Peano.Number number)
+        {
+            var actualInt = ToInt(number);
+            Assert.Equal(expectedInt, actualInt);
+        }
+
+        [Theory, MemberData(nameof(NumberData))]
+        public void IntToNumber(int integer, Peano.Number expectedNumber)
+        {
+            var actualNumber = ToNumber(integer);
+            Assert.Equal(expectedNumber, actualNumber);
         }
 
         [Theory]
@@ -38,7 +72,7 @@ namespace Peano.UnitTests
         public void Increment(int value, int expected)
         {
             var number = ToNumber(value);
-            var result = Number.increment(number);
+            var result = Peano.increment(number);
             var actual = ToInt(result);
             Assert.Equal(expected, actual);
         }
@@ -46,7 +80,7 @@ namespace Peano.UnitTests
         [Fact]
         public void Decrement_Zero()
         {
-            Action action = () => Number.decrement(Number.Number.Zero);
+            Action action = () => Peano.decrement(Peano.Number.Zero);
             Assert.Throws<InvalidOperationException>(action);
         }
 
@@ -57,7 +91,7 @@ namespace Peano.UnitTests
         public void Decrement(int value, int expected)
         {
             var number = ToNumber(value);
-            var result = Number.decrement(number);
+            var result = Peano.decrement(number);
             var actual = ToInt(result);
             Assert.Equal(expected, actual);
         }
@@ -71,7 +105,7 @@ namespace Peano.UnitTests
         {
             var leftNumber = ToNumber(left);
             var rightNumber = ToNumber(right);
-            var result = Number.add(leftNumber, rightNumber);
+            var result = Peano.add(leftNumber, rightNumber);
             var actual = ToInt(result);
             Assert.Equal(expected, actual);
         }
@@ -81,7 +115,7 @@ namespace Peano.UnitTests
         {
             var left = ToNumber(5);
             var right = ToNumber(7);
-            Action action = () => Number.subtract(left, right);
+            Action action = () => Peano.subtract(left, right);
             Assert.Throws<InvalidOperationException>(action);
         }
 
@@ -93,7 +127,7 @@ namespace Peano.UnitTests
         {
             var leftNumber = ToNumber(left);
             var rightNumber = ToNumber(right);
-            var result = Number.subtract(leftNumber, rightNumber);
+            var result = Peano.subtract(leftNumber, rightNumber);
             var actual = ToInt(result);
             Assert.Equal(expected, actual);
         }
@@ -108,7 +142,7 @@ namespace Peano.UnitTests
         {
             var leftNumber = ToNumber(left);
             var rightNumber = ToNumber(right);
-            var result = Number.multiply(leftNumber, rightNumber);
+            var result = Peano.multiply(leftNumber, rightNumber);
             var actual = ToInt(result);
             Assert.Equal(expected, actual);
         }
@@ -116,7 +150,7 @@ namespace Peano.UnitTests
         [Fact]
         public void Division_CantDivideByZero()
         {
-            Action action = () => Number.divide(Number.Number.Zero, Number.Number.Zero);
+            Action action = () => Peano.divide(Peano.Number.Zero, Peano.Number.Zero);
             Assert.Throws<InvalidOperationException>(action);
         }
         
@@ -129,7 +163,7 @@ namespace Peano.UnitTests
         {
             var leftNumber = ToNumber(left);
             var rightNumber = ToNumber(right);
-            var result = Number.divide(leftNumber, rightNumber);
+            var result = Peano.divide(leftNumber, rightNumber);
             var actual = ToInt(result);
             Assert.Equal(expected, actual);
         }
@@ -137,7 +171,7 @@ namespace Peano.UnitTests
         [Fact]
         public void Modulo_CantDivideByZero()
         {
-            Action action = () => Number.modulo(Number.Number.Zero, Number.Number.Zero);
+            Action action = () => Peano.modulo(Peano.Number.Zero, Peano.Number.Zero);
             Assert.Throws<InvalidOperationException>(action);
         }
         
@@ -150,24 +184,16 @@ namespace Peano.UnitTests
         {
             var leftNumber = ToNumber(left);
             var rightNumber = ToNumber(right);
-            var result = Number.modulo(leftNumber, rightNumber);
+            var result = Peano.modulo(leftNumber, rightNumber);
             var actual = ToInt(result);
             Assert.Equal(expected, actual);
-        }
-
-        [Fact]
-        public void Ten()
-        {
-            var result = Number.ten;
-            var actual = ToInt(result);
-            Assert.Equal(10, actual);
         }
 
         [Fact]
         public void PrintDigit_FailsForMoreThanNine()
         {
             var number = ToNumber(15);
-            Action action = () => Number.printDigit(number);
+            Action action = () => Peano.printDigit(number);
             Assert.Throws<InvalidOperationException>(action);
         }
 
@@ -177,7 +203,7 @@ namespace Peano.UnitTests
             for (var i = 0; i < 10; i++)
             {
                 var number = ToNumber(i);
-                var result = Number.printDigit(number);
+                var result = Peano.printDigit(number);
                 Assert.Equal(i.ToString(), result);
             }
         }
@@ -188,7 +214,7 @@ namespace Peano.UnitTests
             for (var i = 0; i <= 70; i += 7)
             {
                 var number = ToNumber(i);
-                var result = Number.print(number);
+                var result = Peano.print(number);
                 Assert.Equal(i.ToString(), result);
             }
         }
@@ -199,7 +225,7 @@ namespace Peano.UnitTests
             for (var i = 0; i <= 70; i += 7)
             {
                 var str = i.ToString();
-                var result = Number.parse(str);
+                var result = Peano.parse(str);
                 var actual = ToInt(result);
                 Assert.Equal(i, actual);
             }
@@ -210,11 +236,11 @@ namespace Peano.UnitTests
         {
             const int expected = 12 * 34 - 56 + 78 / 90;
 
-            var result = Number.add(
-                Number.subtract(Number.multiply(Number.parse("12"), Number.parse("34")), Number.parse("56")),
-                Number.divide(Number.parse("78"), Number.parse("90")));
+            var result = Peano.add(
+                Peano.subtract(Peano.multiply(Peano.parse("12"), Peano.parse("34")), Peano.parse("56")),
+                Peano.divide(Peano.parse("78"), Peano.parse("90")));
 
-            var actual = Number.print(result);
+            var actual = Peano.print(result);
 
             Assert.Equal(expected.ToString(), actual);
         }

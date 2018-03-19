@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27428.2005
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{F2A71F9B-5D33-465A-A702-920D77279786}") = "Peano", "Peano\Peano.fsproj", "{E89877BF-92E3-430A-8035-4C6498113AF2}"
+Project("{6EC3EE1D-3C4E-46DD-8F32-0CC8E7565705}") = "Peano", "Peano\Peano.fsproj", "{E89877BF-92E3-430A-8035-4C6498113AF2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Peano.UnitTests", "Peano.UnitTests\Peano.UnitTests.csproj", "{D74974FE-4451-40F8-8FE1-21F6DB8C7CE1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "Peano.UnitTests\Tests.csproj", "{D74974FE-4451-40F8-8FE1-21F6DB8C7CE1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
