@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Tests
@@ -32,9 +33,8 @@ namespace Tests
             return result;
         }
 
-        public static IEnumerable<object[]> NumberData()
-        {
-            return new []
+        public static IEnumerable<object[]> NumberData =>
+            new []
             {
                 new object[] { 0,  Peano.Number.Zero },
                 new object[] { 1,  Peano.one },
@@ -48,7 +48,6 @@ namespace Tests
                 new object[] { 9,  Peano.nine },
                 new object[] { 10, Peano.ten }
             };
-        }
 
         [Theory, MemberData(nameof(NumberData))]
         public void NumberToInt(int expectedInt, Peano.Number number)
@@ -196,26 +195,29 @@ namespace Tests
             Assert.Throws<InvalidOperationException>(action);
         }
 
-        [Fact]
-        public void PrintDigit()
+        public static IEnumerable<object[]> PrintDigitValues =>
+            from value in Enumerable.Range(0, 10)
+            select new object[] { value };
+
+        [Theory, MemberData(nameof(PrintDigitValues))]
+        public void PrintDigit(int i)
         {
-            for (var i = 0; i < 10; i++)
-            {
-                var number = ToNumber(i);
-                var result = Peano.printDigit(number);
-                Assert.Equal(i.ToString(), result);
-            }
+            var number = ToNumber(i);
+            var result = Peano.printDigit(number);
+            Assert.Equal(i.ToString(), result);
         }
 
-        [Fact]
-        public void Print()
+        public static IEnumerable<object[]> PrintValues =>
+            from index in Enumerable.Range(0, 11)
+            let value = index * 7
+            select new object[] { value };
+
+        [Theory, MemberData(nameof(PrintValues))]
+        public void Print(int i)
         {
-            for (var i = 0; i <= 70; i += 7)
-            {
-                var number = ToNumber(i);
-                var result = Peano.print(number);
-                Assert.Equal(i.ToString(), result);
-            }
+            var number = ToNumber(i);
+            var result = Peano.print(number);
+            Assert.Equal(i.ToString(), result);
         }
 
         [Fact]

@@ -18,7 +18,7 @@ let increment = Successor
 let decrement x =
     match x with
     | Zero -> invalidOp "Can't subtract from zero"
-    | Successor y -> y
+    | Successor x' -> x'
 
 let rec add x y =
     match x with
@@ -31,10 +31,12 @@ let rec subtract x y =
     | (Zero, _) -> invalidOp "Can't subtract a larger number from a smaller number"
     | (Successor x', Successor y') -> subtract x' y'
 
-let rec multiply x y =
-    match x with
-    | Zero -> Zero
-    | Successor x' -> add y (multiply x' y)
+let multiply x y =
+    let rec multiply' a x y =
+        match x with
+        | Zero -> a
+        | Successor x' -> multiply' (add a y) x' y
+    in multiply' Zero x y
 
 let rec lessThan x y =
     match (x, y) with
@@ -42,10 +44,13 @@ let rec lessThan x y =
     | (Zero, _) -> true
     | (Successor x', Successor y') -> lessThan x' y'
 
-let rec divide x y =
+let divide x y =
     if y = Zero then invalidOp "Can't divide by zero"
-    else if lessThan x y then Zero
-    else Successor (divide (subtract x y) y)
+    else
+        let rec divide' a x y =
+            if lessThan x y then a
+            else divide' (increment a) (subtract x y) y
+        in divide' Zero x y
 
 let rec modulo x y =
     if y = Zero then invalidOp "Can't divide by zero"
@@ -91,4 +96,6 @@ let rec parse s =
         let lastIndex = s.Length - 1 in
         let last = s.[lastIndex].ToString() in
         let rest = s.[0..lastIndex - 1] in
-        add (parse last) (multiply ten (parse rest))
+        let lastValue = parse last in
+        let restValue = parse rest in
+        add lastValue (multiply ten restValue)

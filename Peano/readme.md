@@ -188,9 +188,8 @@ these conversions), so we have to use `MemberData`. Then we want to have a test
 for each conversion.
 
 ``` csharp
-public static IEnumerable<object[]> NumberData()
-{
-    return new []
+public static IEnumerable<object[]> NumberData =>
+    new []
     {
         new object[] { 0,  Peano.Number.Zero },
         new object[] { 1,  Peano.one },
@@ -204,7 +203,6 @@ public static IEnumerable<object[]> NumberData()
         new object[] { 9,  Peano.nine },
         new object[] { 10, Peano.ten }
     };
-}
 
 [Theory, MemberData(nameof(NumberData))]
 public void NumberToInt(int expectedInt, Peano.Number number)
@@ -388,13 +386,14 @@ zero, in which case we're done. Recursion is a magnificent beast.
 
 Now it's time for you to do some real thinking. Here's the layout of the
 function and its test, now it's up to you to finish the function and make the
-test pass.
+test pass (don't worry if you can't - a full implementation will be included
+later).
 
 ``` fsharp
 let rec add x y =
     match x with
-    | Zero -> // code if x is zero
-    | Successor x' -> // code if x is successor of x'
+    | Zero -> // if x = 0
+    | Successor x' -> // else, x = x' + 1
 ```
 
 ``` csharp
@@ -412,6 +411,183 @@ public void Addition(int left, int right, int expected)
     Assert.Equal(expected, actual);
 }
 ```
+
+Apart from just helping you out with the structure of the method, there's
+another reason I gave you the bare bones of the function: the `rec` keyword.
+This is used in F# (and other ML-derived languages) to indicate that the
+function is recursive. If we didn't add this keyword, the name `add` would not
+exist (be bound) within the context of the function, and we couldn't call it.
+_Not_ adding the `rec` keyword would, on the other hand, allow us to re-use the
+name `add` for e.g. a helper function, which we'll be doing later.
+
+That out of the way, I promised the full implementation. It's fairly
+straightforward, once you understand it: if `x` is zero, we are essentially
+doing `0 + y`, the result of which is, of course, `y`. If `x` _isn't_ zero, it
+is the successor of `x'`, which is equal to `x - 1`. The successor of `y` is
+equal to `y + 1`, so using the fact that _x + y = (x - 1) + (y + 1)_, we simply
+call `add` again on those two.
+
+Because we keep lowering `x` in every subsequent call, it will eventually reach
+zero, and we will be done. More simply put: we keep decrementing `x` and
+incrementing `y` by one until `x` is zero, then return `y`.
+
+``` fsharp
+let rec add x y =
+    match x with
+    | Zero -> y
+    | Successor x' -> add x' (Successor y)
+```
+
+## Take it away now
+
+Subtraction is, like `decrement`, a slightly trickier beast. After all, not
+every subtraction results in a natural number. Sure, the result of 5 - 7 is -2,
+but that's not a natural number, is it?
+
+Other than that though, calculating `x - y` is very similar to `x - y`, except
+instead incrementing the result every step, we decrement it. So, we've got
+three rules:
+
+> 1. _x - 0 = x_
+> 2. _0 - y, y > 0_ is impossible (throw an exception)
+> 3. _x - y = (x - 1) - (y - 1)_
+
+So again, here's the bare bones of a function using that logic, and two tests
+you can use to validate your logic: one for the actual subtraction logic, one
+for the handling of invalid cases. Again, full code later, don't peek if you'd
+like some practice.
+
+``` fsharp
+let rec subtract x y =
+    match (x, y) with
+    | (_, Zero) -> // if y = 0
+    | (Zero, _) -> // else if x = 0, y > 0
+    | (Successor x', Successor y') -> // else x = x' + 1, y = y' + 1
+```
+
+``` csharp
+[Fact]
+public void Subtraction_CantSubtractLargeFromSmall()
+{
+    var left = ToNumber(5);
+    var right = ToNumber(7);
+    Action action = () => Peano.subtract(left, right);
+    Assert.Throws<InvalidOperationException>(action);
+}
+
+[Theory]
+[InlineData(1, 0, 1)]
+[InlineData(5, 3, 2)]
+[InlineData(24, 13, 11)]
+public void Subtraction(int left, int right, int expected)
+{
+    var leftNumber = ToNumber(left);
+    var rightNumber = ToNumber(right);
+    var result = Peano.subtract(leftNumber, rightNumber);
+    var actual = ToInt(result);
+    Assert.Equal(expected, actual);
+}
+```
+
+This one ends up with one more case to handle (`y` being greater than `x`), but
+the recursive case is simpler. So, three cases: if `y` is zero, return `x`
+(because _x - 0 = x_). Else, if `x` is zero, throw an invalid operation
+exception (because _0 - y, y > 0_ is not allowed). Otherwise, return `x' - y'`,
+because _x' = x - 1, y' = y - 1_ and _x - y = (x - 1) - (y - 1)_.
+
+Also note the use of `(x, y)` in the pattern match: we create a tuple from `x`
+and `y` so that we can match against them both. The underscores are used to
+indicate that we don't care what's in that part of the match: either we already
+have the value we're interested in (first case) or we simply don't need it
+(second case).
+
+``` fsharp
+let rec subtract x y =
+    match (x, y) with
+    | (_, Zero) -> x
+    | (Zero, _) -> invalidOp "Can't subtract a larger number from a smaller number"
+    | (Successor x', Successor y') -> subtract x' y'
+```
+
+## Go forth and multiply
+
+If addition is repeated incrementation, multiplication is repeated addition: to
+multiply _x_ by _y_, you start with 0 and add _x_ to that _y_ times (or the
+other way around, of course). That gives us a problem: we have to keep track of
+_three_ things this time:
+
+* _a_, which starts at zero and is our answer so far ("a" for "accumulator")
+* _x_, so we can add it it _a_
+* _y_, which we will use to keep track of how often we still have to add _x_ to
+  _a_.
+
+However, our multiplication method only takes _two_ parameters: _x_ and _y_. So
+if we want to recurse, how are we going to keep track of _a_?
+
+Well, we create a helper method! Remember how I told you before, that if you're
+in a non-recursive function declaration (i.e. without the `rec` keyword), the
+name of the function isn't bound to anything? Well, that allows us to re-use the
+name for the "real" multiplication function: the one _with_ _a_. We can then
+solve our problem by calling that and passing in 0 (which is the starting value
+for _a_, remember?).
+
+``` fsharp
+let multiply x y =
+    let rec multiply a x y =
+        ...
+    in multiply Zero x y
+```
+
+The main reason I'm showing you that you can re-use the name within the function
+itself is so you can understand what's going on when you see it written down.
+Personally, I like to re-use the system for "alternative variables": appending
+an apostrophe:
+
+``` fsharp
+let multiply x y =
+    let rec multiply' a x y =
+        ...
+    in multiply' Zero x y
+```
+
+So, now it's time to implement the `multiply'` function. Like before, there's
+two rules that we will essentially use to define multiplication:
+
+> 1. _0 * y = 0_
+> 2. _x * y = y + (x - 1) * y_
+
+So, calling our helper function _m_, which uses _a_ to keep track of the sum so
+far, we can rewrite those rules to the following:
+
+> 1. _x * y = m(0, x, y)_
+> 2. _m(a, 0, y) = a_
+> 3. _m(a, x, y) = m(a + y, x - 1, y)_
+
+Make sure you understand how these two sets of rules mean the same thing, and
+you should be able to implement the `multiply'` function yourself. This time I
+won't be including the full code later, but here are the tests to help you make
+sure your function works as it should.
+
+``` csharp
+[Theory]
+[InlineData(0, 0, 0)]
+[InlineData(5, 0, 0)]
+[InlineData(0, 3, 0)]
+[InlineData(1, 7, 7)]
+[InlineData(8, 9, 72)]
+public void Multiplication(int left, int right, int expected)
+{
+    var leftNumber = ToNumber(left);
+    var rightNumber = ToNumber(right);
+    var result = Peano.multiply(leftNumber, rightNumber);
+    var actual = ToInt(result);
+    Assert.Equal(expected, actual);
+}
+```
+
+Make sure these tests pass (just like before), as later functions will depend on
+their working correctly (like `multiply` depends on `add`).
+
 
 [wiki]: https://en.wikipedia.org/wiki/Peano_axioms
 [discriminated-union]: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/discriminated-unions
