@@ -45,7 +45,8 @@ let rec lessThan x y =
     | (Successor x', Successor y') -> lessThan x' y'
 
 let divide x y =
-    if y = Zero then invalidOp "Can't divide by zero"
+    if y = Zero then
+        invalidOp "Can't divide by zero"
     else
         let rec divide' a x y =
             if lessThan x y then a

@@ -278,10 +278,10 @@ data to let us easily verify a number of test cases.
 
 ``` csharp
 [Theory]
-[InlineData(0, 1)]
-[InlineData(1, 2)]
-[InlineData(10, 11)]
-public void Increment(int value, int expected)
+[InlineData(0)]
+[InlineData(1)]
+[InlineData(10)]
+public void Increment(int value)
 {
     // Test code here
 }
@@ -289,7 +289,7 @@ public void Increment(int value, int expected)
 
 I'll leave it to you to write the test code. It should be fairly simple: convert
 `value` to a `Number`, use `Peano.increment` to increment it, convert it back to
-an `int` and assert that it matches the expected value.
+an `int` and assert that it matches the expected value (which is `value + 1`).
 
 ## One ~~less~~ fewer, please
 
@@ -344,10 +344,10 @@ you to implement the actual test.
 
 ``` csharp
 [Theory]
-[InlineData(1, 0)]
-[InlineData(2, 1)]
-[InlineData(11, 10)]
-public void Decrement(int value, int expected)
+[InlineData(1)]
+[InlineData(2)]
+[InlineData(11)]
+public void Decrement(int value)
 {
     // Test code here
 }
@@ -398,12 +398,13 @@ let rec add x y =
 
 ``` csharp
 [Theory]
-[InlineData(0, 0, 0)]
-[InlineData(5, 0, 5)]
-[InlineData(0, 3, 3)]
-[InlineData(16, 27, 43)]
-public void Addition(int left, int right, int expected)
+[InlineData(0, 0)]
+[InlineData(5, 0)]
+[InlineData(0, 3)]
+[InlineData(16, 27)]
+public void Addition(int left, int right)
 {
+    var expected = left + right;
     var leftNumber = ToNumber(left);
     var rightNumber = ToNumber(right);
     var result = Peano.add(leftNumber, rightNumber);
@@ -449,7 +450,7 @@ instead incrementing the result every step, we decrement it. So, we've got
 three rules:
 
 > 1. _x - 0 = x_
-> 2. _0 - y, y > 0_ is impossible (throw an exception)
+> 2. _0 - y, y != 0_ is impossible (throw an exception)
 > 3. _x - y = (x - 1) - (y - 1)_
 
 So again, here's the bare bones of a function using that logic, and two tests
@@ -476,11 +477,12 @@ public void Subtraction_CantSubtractLargeFromSmall()
 }
 
 [Theory]
-[InlineData(1, 0, 1)]
-[InlineData(5, 3, 2)]
-[InlineData(24, 13, 11)]
-public void Subtraction(int left, int right, int expected)
+[InlineData(1, 0)]
+[InlineData(5, 3)]
+[InlineData(24, 13)]
+public void Subtraction(int left, int right)
 {
+    var expected = left - right;
     var leftNumber = ToNumber(left);
     var rightNumber = ToNumber(right);
     var result = Peano.subtract(leftNumber, rightNumber);
@@ -570,13 +572,14 @@ sure your function works as it should.
 
 ``` csharp
 [Theory]
-[InlineData(0, 0, 0)]
-[InlineData(5, 0, 0)]
-[InlineData(0, 3, 0)]
-[InlineData(1, 7, 7)]
-[InlineData(8, 9, 72)]
-public void Multiplication(int left, int right, int expected)
+[InlineData(0, 0)]
+[InlineData(5, 0)]
+[InlineData(0, 3)]
+[InlineData(1, 7)]
+[InlineData(8, 9)]
+public void Multiplication(int left, int right)
 {
+    var expected = left * right;
     var leftNumber = ToNumber(left);
     var rightNumber = ToNumber(right);
     var result = Peano.multiply(leftNumber, rightNumber);
@@ -588,6 +591,161 @@ public void Multiplication(int left, int right, int expected)
 Make sure these tests pass (just like before), as later functions will depend on
 their working correctly (like `multiply` depends on `add`).
 
+## Divide and conquer
+
+We've got most of the basic arithmetic going now, there's one to go still:
+division. Like with subtraction, the result of dividing one natural number with
+another isn't always a natural number: what's the result of 1 / 2, or 2 / 0?
+
+For division by zero, there's no real solution: you just can't do that. For
+divisions that result in non-whole numbers, there (sort of) is a solution, which
+is integer division. Just like with real integer types in most programming
+languages, the result of a division is rounded down to the nearest integer. This
+means that the result of 27 / 10 is 2 (2.7 rounded down).
+
+Just like addition, subtraction and multiplication, division is also the
+repeated application of another operation. In this case: subtraction. After all,
+the result of 27 / 10 is the number of times we can subtract 10 from 27: 2
+times. However, this means that we have to do something we can't do yet: check
+whether we can actually subtract or divisor from the number.
+
+### Less than
+
+So, before we end up subtracting our divisor too often (which throws an error,
+remember?), we have to check whether our remaining number is less than the
+divisor: if so, we are done with the division. So, how do we compare two
+numbers?
+
+Well, comparisons with zero are easy: nothing is less than zero, so if the right
+operand is zero, we can return `false`. If the right operand _isn't_ zero, but
+the left one _is_, the answer is `true`. That leaves us with the case where both
+numbers aren't zero: in that case, we can just subtract one from each and repeat
+our comparison on those! After all, _x < y_ is equivalent to _x - 1 < y - 1_.
+
+So, our rules:
+
+> 1. _x < 0 = false_
+> 2. _0 < y, y != 0 = true_
+> 3. _x < y = x - 1 < y - 1_
+
+By now you should be able to implement this method yourself, so I'm only going
+to provide the tests for you. Remember that you can use tuples to match against
+multiple values!
+
+``` csharp
+[Theory]
+[InlineData(0, 0)]
+[InlineData(6, 6)]
+[InlineData(0, 1)]
+[InlineData(1, 0)]
+[InlineData(1, 1)]
+[InlineData(4, 5)]
+[InlineData(7, 19)]
+[InlineData(3, 8)]
+public void LessThan(int left, int right)
+{
+    var expected = left < right;
+    var leftNumber = ToNumber(left);
+    var rightNumber = ToNumber(right);
+    var actual = Peano.lessThan(leftNumber, rightNumber);
+    Assert.Equal(expected, actual);
+}
+```
+
+Make sure all the tests pass, and you're good to go on to the next bit.
+
+### Divide
+
+So, division. This is a bit more tricky than before, and I'm going to teach you
+a new thing: `if` expressions. If you've programmed in C# before (or any of many
+other languages that use it), you might be familiar with the conditional
+operator: `a ? b : c`. The difference between it and a regular `if` _statement_
+is that an `if` statement doesn't have a value, and might not have an `else`:
+
+``` csharp
+if (path == null)
+{
+    path = DefaultPath;
+    Console.WriteLine($"No path set, using default '{DefaultPath}'.");
+}
+```
+
+As you might have noticed, in F# _everything_ has a value (i.e. is an
+expression), and as a result, the `if` _operator_ is more like the `?:`
+operator:
+
+``` fsharp
+let absolute x = if x < 0 then -x else x
+```
+
+And, of course, note the `then` keyword: this is required.
+
+So, on to our divide method. What was the first thing again? Right, _if_ (see?)
+the divisor is zero, throw an exception:
+
+``` fsharp
+let divide x y =
+    if y = Zero then
+        invalidOp "Can't divide by zero"
+    else
+        // y isn't zero here
+```
+
+So what do we do if `y` isn't zero? Well, just like with multiplication, we're
+going to need to keep track of a third value: how often we've subtracted `y`
+from `x`. So, we're going to create another (recursive) helper function. We're
+going to use `a` for "accumulator" again, and also like with multiplication, it
+starts at zero.
+
+``` fsharp
+let divide x y =
+    if y = Zero then
+        invalidOp "Can't divide by zero"
+    else
+        let rec divide' a x y =
+            // code for division
+        in divide' Zero x y
+```
+
+The division itself is fairly straightforward: if `x` is less than `y`, we can't
+subtract anymore, and we can return `a` (which is how often we've subtracted so
+far). If `x` is equal to or greater than `y` (which is just _else_), we _can_
+subtract `y` from `x`, we increment `a` and repeat!
+
+``` fsharp
+let divide x y =
+    if y = Zero then
+        invalidOp "Can't divide by zero"
+    else
+        let rec divide' a x y =
+            if lessThan x y then a
+            else divide' (increment a) (subtract x y) y
+        in divide' Zero x y
+```
+
+That's the entire thing, so you don't have to do it yourself - this time. It'll
+be useful to remember how this `if`-`then`-`else` thing works, as you will be
+writing it yourself later on. However, just to make sure you've still got
+something to do, you can finish these tests (have a look at `subtract`'s tests
+for some help).
+
+``` csharp
+[Fact]
+public void Division_CantDivideByZero()
+{
+    // Test for an invalid operation exception here
+}
+
+[Theory]
+[InlineData(1, 1)]
+[InlineData(5, 3)]
+[InlineData(15, 3)]
+[InlineData(100, 9)]
+public void Division(int left, int right)
+{
+    // Test for correct division here
+}
+```
 
 [wiki]: https://en.wikipedia.org/wiki/Peano_axioms
 [discriminated-union]: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/discriminated-unions

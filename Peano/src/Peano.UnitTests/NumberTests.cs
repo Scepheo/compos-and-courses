@@ -64,11 +64,12 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(0, 1)]
-        [InlineData(1, 2)]
-        [InlineData(10, 11)]
-        public void Increment(int value, int expected)
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(10)]
+        public void Increment(int value)
         {
+            var expected = value + 1;
             var number = ToNumber(value);
             var result = Peano.increment(number);
             var actual = ToInt(result);
@@ -83,11 +84,12 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(1, 0)]
-        [InlineData(2, 1)]
-        [InlineData(11, 10)]
-        public void Decrement(int value, int expected)
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(11)]
+        public void Decrement(int value)
         {
+            var expected = value - 1;
             var number = ToNumber(value);
             var result = Peano.decrement(number);
             var actual = ToInt(result);
@@ -95,12 +97,13 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(0, 0, 0)]
-        [InlineData(5, 0, 5)]
-        [InlineData(0, 3, 3)]
-        [InlineData(16, 27, 43)]
-        public void Addition(int left, int right, int expected)
+        [InlineData(0, 0)]
+        [InlineData(5, 0)]
+        [InlineData(0, 3)]
+        [InlineData(16, 27)]
+        public void Addition(int left, int right)
         {
+            var expected = left + right;
             var leftNumber = ToNumber(left);
             var rightNumber = ToNumber(right);
             var result = Peano.add(leftNumber, rightNumber);
@@ -118,11 +121,12 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(1, 0, 1)]
-        [InlineData(5, 3, 2)]
-        [InlineData(24, 13, 11)]
-        public void Subtraction(int left, int right, int expected)
+        [InlineData(1, 0)]
+        [InlineData(5, 3)]
+        [InlineData(24, 13)]
+        public void Subtraction(int left, int right)
         {
+            var expected = left - right;
             var leftNumber = ToNumber(left);
             var rightNumber = ToNumber(right);
             var result = Peano.subtract(leftNumber, rightNumber);
@@ -131,17 +135,36 @@ namespace Tests
         }
         
         [Theory]
-        [InlineData(0, 0, 0)]
-        [InlineData(5, 0, 0)]
-        [InlineData(0, 3, 0)]
-        [InlineData(1, 7, 7)]
-        [InlineData(8, 9, 72)]
-        public void Multiplication(int left, int right, int expected)
+        [InlineData(0, 0)]
+        [InlineData(5, 0)]
+        [InlineData(0, 3)]
+        [InlineData(1, 7)]
+        [InlineData(8, 9)]
+        public void Multiplication(int left, int right)
         {
+            var expected = left * right;
             var leftNumber = ToNumber(left);
             var rightNumber = ToNumber(right);
             var result = Peano.multiply(leftNumber, rightNumber);
             var actual = ToInt(result);
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(0, 0)]
+        [InlineData(6, 6)]
+        [InlineData(0, 1)]
+        [InlineData(1, 0)]
+        [InlineData(1, 1)]
+        [InlineData(4, 5)]
+        [InlineData(7, 19)]
+        [InlineData(3, 8)]
+        public void LessThan(int left, int right)
+        {
+            var expected = left < right;
+            var leftNumber = ToNumber(left);
+            var rightNumber = ToNumber(right);
+            var actual = Peano.lessThan(leftNumber, rightNumber);
             Assert.Equal(expected, actual);
         }
 
@@ -153,12 +176,13 @@ namespace Tests
         }
         
         [Theory]
-        [InlineData(1, 1, 1)]
-        [InlineData(5, 3, 1)]
-        [InlineData(15, 3, 5)]
-        [InlineData(100, 9, 11)]
-        public void Division(int left, int right, int expected)
+        [InlineData(1, 1)]
+        [InlineData(5, 3)]
+        [InlineData(15, 3)]
+        [InlineData(100, 9)]
+        public void Division(int left, int right)
         {
+            var expected = left / right;
             var leftNumber = ToNumber(left);
             var rightNumber = ToNumber(right);
             var result = Peano.divide(leftNumber, rightNumber);
@@ -174,12 +198,13 @@ namespace Tests
         }
         
         [Theory]
-        [InlineData(1, 1, 0)]
-        [InlineData(5, 3, 2)]
-        [InlineData(15, 3, 0)]
-        [InlineData(100, 9, 1)]
-        public void Modulo(int left, int right, int expected)
+        [InlineData(1, 1)]
+        [InlineData(5, 3)]
+        [InlineData(15, 3)]
+        [InlineData(100, 9)]
+        public void Modulo(int left, int right)
         {
+            var expected = left % right;
             var leftNumber = ToNumber(left);
             var rightNumber = ToNumber(right);
             var result = Peano.modulo(leftNumber, rightNumber);
