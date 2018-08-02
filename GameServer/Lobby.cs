@@ -44,10 +44,11 @@ namespace GameServer
         /// <param name="cancellationToken">
         /// Token that can be used to cancel the task
         /// </param>
-        public void Start(CancellationToken cancellationToken)
+        public async Task Start(CancellationToken cancellationToken)
         {
-            _ = Poll(cancellationToken);
-            _ = Listen(cancellationToken);
+            await Task.WhenAll(
+                Poll(cancellationToken),
+                Listen(cancellationToken));
         }
 
         private async Task Poll(CancellationToken cancellationToken)
