@@ -19,22 +19,42 @@ namespace GameServer.UnitTests
             var lobby = new Lobby(new Config
             {
                 GameLogicFactory = () => logic,
-                LobbyPollInterval = TimeSpan.FromMilliseconds(100),
+                LobbyPollInterval = TimeSpan.FromMilliseconds(10),
                 PlayerCount = 2,
                 ServerPort = port
             });
 
-            var startedGame = default(Game);
-            lobby.OnGameCreated += (sender, game) => startedGame = game;
+            var createdGame = (Game)null;
+            lobby.OnGameCreated += (sender, game) => createdGame = game;
+            var source = new CancellationTokenSource();
 
             // Act
-            _ = lobby.Start(CancellationToken.None);
-            var client1 = new TestClient(port);
-            var client2 = new TestClient(port);
-            await Task.Delay(500);
+            lobby.Start(source.Token);
+            var alice = Task.Run(
+                () =>
+                {
+                    var client = new TestClient(port);
+                    _ = client.Receive(1);
+                    client.Send("Alice");
+                }, source.Token);
+            var bob = Task.Run(
+                () =>
+                {
+                    var client = new TestClient(port);
+                    _ = client.Receive(1);
+                    client.Send("Bob");
+                }, source.Token);
+            await Task.WhenAll(alice, bob);
+            await Task.Delay(100, source.Token);
 
             // Assert
-            Assert.NotNull(startedGame);
+            Assert.NotNull(createdGame);
+            _ = createdGame.Start(source.Token);
+            await Task.Delay(100, source.Token);
+            Assert.Contains("Alice", logic.Players);
+            Assert.Contains("Bob", logic.Players);
+
+            source.Cancel();
         }
     }
 }

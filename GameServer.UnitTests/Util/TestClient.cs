@@ -22,13 +22,10 @@ namespace GameServer.UnitTests.Util
             _writer = new StreamWriter(_stream);
         }
 
-        public void Send(IEnumerable<string> commands)
+        public void Send(string command)
         {
-            foreach (var command in commands)
-            {
-                _writer.WriteLine(command);
-                _writer.Flush();
-            }
+            _writer.WriteLine(command);
+            _writer.Flush();
         }
 
         public string[] Receive(int count)

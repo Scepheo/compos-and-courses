@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -44,11 +45,10 @@ namespace GameServer
         /// <param name="cancellationToken">
         /// Token that can be used to cancel the task
         /// </param>
-        public async Task Start(CancellationToken cancellationToken)
+        public void Start(CancellationToken cancellationToken)
         {
-            await Task.WhenAll(
-                Poll(cancellationToken),
-                Listen(cancellationToken));
+            _ = Poll(cancellationToken);
+            _ = Listen(cancellationToken);
         }
 
         private async Task Poll(CancellationToken cancellationToken)
@@ -70,16 +70,24 @@ namespace GameServer
 
             while (!cancellationToken.IsCancellationRequested)
             {
-                var tcpClient = await _tcpListener.AcceptTcpClientAsync();
-                AcceptClient(tcpClient);
+                if (_tcpListener.Pending())
+                {
+                    var tcpClient = await _tcpListener.AcceptTcpClientAsync();
+                    await AcceptClient(tcpClient);
+                }
+                else
+                {
+                    await Task.Delay(_pollInterval, cancellationToken);
+                }
             }
         }
 
-        private void AcceptClient(TcpClient tcpClient)
+        private async Task AcceptClient(TcpClient tcpClient)
         {
             var client = new Client(tcpClient);
             _clients.Add(client);
             client.OnDisconnect += ClientDisconnectHandler;
+            await InitializeClient(client);
             TryStartGame();
         }
 
@@ -106,6 +114,14 @@ namespace GameServer
             var collection = new ClientCollection(players);
             var game = new Game(collection, _gameLogicFactory());
             OnGameCreated?.Invoke(this, game);
+        }
+
+        private async Task InitializeClient(Client client)
+        {
+            var command = new PlayerCommand(null, "LOBBY");
+            await client.Send(new [] { command });
+            var nameResponse = await client.Receive();
+            client.Name = nameResponse.Command;
         }
     }
 }

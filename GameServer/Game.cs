@@ -40,20 +40,20 @@ namespace GameServer
         /// </returns>
         public async Task Start(CancellationToken cancellationToken)
         {
-            var initialCommands = _gameLogic.GetInitialCommands();
+            var initialCommands = _gameLogic.Initialize(_players.Names);
             await _players.Send(initialCommands);
 
             while (!cancellationToken.IsCancellationRequested
                 && !_gameLogic.IsDone)
             {
                 var commands = await _players.Receive();
-                var results = _gameLogic.GetUpdateCommands(commands);
+                var results = _gameLogic.Update(commands);
                 await _players.Send(results);
             }
 
             if (_gameLogic.IsDone)
             {
-                var finalCommands = _gameLogic.GetFinalCommands();
+                var finalCommands = _gameLogic.Complete();
                 await _players.Send(finalCommands);
                 var results = _gameLogic.GetResults();
                 OnGameEnd?.Invoke(this, results);

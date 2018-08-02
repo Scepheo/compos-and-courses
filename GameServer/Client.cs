@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
@@ -11,6 +12,11 @@ namespace GameServer
     /// </summary>
     internal class Client : IDisposable
     {
+        /// <summary>
+        /// Name of the client
+        /// </summary>
+        public string Name { get; set; }
+
         private readonly TcpClient _tcpClient;
         private readonly NetworkStream _stream;
         private readonly StreamReader _reader;
@@ -37,30 +43,32 @@ namespace GameServer
         /// Receives a string mesage from the client
         /// </summary>
         /// <returns>The received message</returns>
-        public async Task<string> Receive()
+        public async Task<PlayerCommand> Receive()
         {
             try
             {
-                return await _reader.ReadLineAsync();
+                var command = await _reader.ReadLineAsync();
+                return new PlayerCommand(Name, command);
             }
             catch (IOException)
             {
                 OnDisconnect?.Invoke(this, this);
-                return string.Empty;
+                return null;
             }
         }
 
         /// <summary>
         /// Sends one or more string messages to the client
         /// </summary>
-        /// <param name="messages">The messages to send</param>
-        public async Task Send(IEnumerable<string> messages)
+        /// <param name="commands">The messages to send</param>
+        public async Task Send(PlayerCommand[] commands)
         {
             try
             {
-                foreach (var datum in messages)
+                foreach (var command in commands)
                 {
-                    await _writer.WriteLineAsync(datum);
+                    await _writer.WriteLineAsync(command.Command);
+                    await _writer.FlushAsync();
                 }
             }
             catch (IOException)
