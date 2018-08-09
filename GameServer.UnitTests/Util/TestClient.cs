@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -38,6 +37,11 @@ namespace GameServer.UnitTests.Util
             }
 
             return results;
+        }
+
+        public string Receive()
+        {
+            return _reader.ReadLine();
         }
 
         public void Dispose()

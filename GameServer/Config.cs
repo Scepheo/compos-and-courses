@@ -8,7 +8,9 @@ namespace GameServer
     public class Config
     {
         /// <summary>
-        /// Port on which the server should listen
+        /// Port on which the server should listen. Set to 0 to let the lobby
+        /// automatically select a free port (the actual port in used can be
+        /// retrieved with <see cref="Lobby.Port"/> after starting it).
         /// </summary>
         public int ServerPort { get; set; }
 

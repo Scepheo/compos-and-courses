@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using GameServer.UnitTests.Util;
@@ -12,47 +13,80 @@ namespace GameServer.UnitTests
         public async Task EnoughPlayers_GameStarted()
         {
             // Arrange
-            const int port = 12345;
+            const string alice = "Alice";
+            const string bob = "Bob";
+            const string initMessage = "LOBBY";
+            const string startMessage = "START";
 
-            var logic = new TestGame();
-
-            var lobby = new Lobby(new Config
+            var logic = new TestGame
             {
-                GameLogicFactory = () => logic,
-                LobbyPollInterval = TimeSpan.FromMilliseconds(10),
-                PlayerCount = 2,
-                ServerPort = port
-            });
+                InitialCommands = new[]
+                {
+                    new PlayerCommand(alice, startMessage),
+                    new PlayerCommand(bob, startMessage),
+                }
+            };
+
+            var lobby = new Lobby(
+                new Config
+                {
+                    GameLogicFactory = () => logic,
+                    LobbyPollInterval = TimeSpan.FromMilliseconds(10),
+                    PlayerCount = 2,
+                    ServerPort = 0
+                });
 
             var createdGame = (Game)null;
-            lobby.OnGameCreated += (sender, game) => createdGame = game;
             var source = new CancellationTokenSource();
 
             // Act
+            lobby.OnGameCreated += (sender, game) =>
+            {
+                createdGame = game;
+                _ = game.Start(source.Token);
+            };
+
             lobby.Start(source.Token);
-            var alice = Task.Run(
+
+            var port = lobby.Port;
+
+            string aliceInit = null,
+                   bobInit = null,
+                   aliceStart = null,
+                   bobStart = null;
+
+            var aliceTask = Task.Run(
                 () =>
                 {
                     var client = new TestClient(port);
-                    _ = client.Receive(1);
-                    client.Send("Alice");
-                }, source.Token);
-            var bob = Task.Run(
+                    aliceInit = client.Receive();
+                    client.Send(alice);
+                    aliceStart = client.Receive();
+                },
+                source.Token);
+
+            var bobTask = Task.Run(
                 () =>
                 {
                     var client = new TestClient(port);
-                    _ = client.Receive(1);
-                    client.Send("Bob");
-                }, source.Token);
-            await Task.WhenAll(alice, bob);
-            await Task.Delay(100, source.Token);
+                    bobInit = client.Receive();
+                    client.Send(bob);
+                    bobStart = client.Receive();
+                },
+                source.Token);
+
+            await Task.WhenAll(aliceTask, bobTask);
 
             // Assert
+            Assert.Equal(initMessage, aliceInit);
+            Assert.Equal(startMessage, aliceStart);
+
+            Assert.Equal(initMessage, bobInit);
+            Assert.Equal(startMessage, bobStart);
+
             Assert.NotNull(createdGame);
-            _ = createdGame.Start(source.Token);
-            await Task.Delay(100, source.Token);
-            Assert.Contains("Alice", logic.Players);
-            Assert.Contains("Bob", logic.Players);
+            Assert.Contains(alice, logic.Players);
+            Assert.Contains(bob, logic.Players);
 
             source.Cancel();
         }

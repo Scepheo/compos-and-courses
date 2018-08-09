@@ -16,6 +16,10 @@ namespace GameServer
         /// </summary>
         public string[] Names => _clients.Select(client => client.Name).ToArray();
 
+        /// <summary>
+        /// Instantiates a new collection containing the given clients
+        /// </summary>
+        /// <param name="clients">The clients to go in the collection</param>
         public ClientCollection(Client[] clients)
         {
             _clients = clients;

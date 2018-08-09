@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,7 +23,13 @@ namespace GameServer
         /// <summary>
         /// Called when a new game has been created and is ready to be started
         /// </summary>
-        public event EventHandler<Game> OnGameCreated; 
+        public event EventHandler<Game> OnGameCreated;
+
+        /// <summary>
+        /// The port the lobby is listening on. Differs from the configured port
+        /// when that is set to 0, as it will then choose its own port.
+        /// </summary>
+        public int Port { get; private set; }
 
         /// <summary>
         /// Creates a new lobby
@@ -40,7 +45,9 @@ namespace GameServer
         }
 
         /// <summary>
-        /// Starts the lobby listening for clients
+        /// Starts the lobby listening for clients. Continuously accepts
+        /// clients, initializing them and tries to start a new game whenever
+        /// there are enough players.
         /// </summary>
         /// <param name="cancellationToken">
         /// Token that can be used to cancel the task
@@ -67,6 +74,11 @@ namespace GameServer
         private async Task Listen(CancellationToken cancellationToken)
         {
             _tcpListener.Start();
+
+            if (_tcpListener.LocalEndpoint is IPEndPoint ipEndPoint)
+            {
+                Port = ipEndPoint.Port;
+            }
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -116,7 +128,7 @@ namespace GameServer
             OnGameCreated?.Invoke(this, game);
         }
 
-        private async Task InitializeClient(Client client)
+        private static async Task InitializeClient(Client client)
         {
             var command = new PlayerCommand(null, "LOBBY");
             await client.Send(new [] { command });

@@ -15,6 +15,15 @@
         /// </summary>
         public string Command { get; }
 
+        /// <summary>
+        /// Instantiates a new command for a given player
+        /// </summary>
+        /// <param name="player">
+        /// The player who has send/will receive the command
+        /// </param>
+        /// <param name="command">
+        /// The command to send to/received from the player
+        /// </param>
         public PlayerCommand(string player, string command)
         {
             Player = player;
