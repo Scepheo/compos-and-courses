@@ -445,7 +445,7 @@ Subtraction is, like `decrement`, a slightly trickier beast. After all, not
 every subtraction results in a natural number. Sure, the result of 5 - 7 is -2,
 but that's not a natural number, is it?
 
-Other than that though, calculating `x - y` is very similar to `x - y`, except
+Other than that though, calculating `x - y` is very similar to `x + y`, except
 instead incrementing the result every step, we decrement it. So, we've got
 three rules:
 
