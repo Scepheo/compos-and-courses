@@ -41,12 +41,12 @@ namespace GameServer
         /// Receives a string mesage from the client
         /// </summary>
         /// <returns>The received message</returns>
-        public async Task<PlayerCommand> Receive()
+        public async Task<PlayerResponse> Receive()
         {
             try
             {
-                var command = await _reader.ReadLineAsync();
-                return new PlayerCommand(Name, command);
+                var response = await _reader.ReadLineAsync();
+                return new PlayerResponse(Name, response);
             }
             catch (IOException)
             {
@@ -59,13 +59,13 @@ namespace GameServer
         /// Sends one or more string messages to the client
         /// </summary>
         /// <param name="commands">The messages to send</param>
-        public async Task Send(PlayerCommand[] commands)
+        public async Task Send(string[] commands)
         {
             try
             {
                 foreach (var command in commands)
                 {
-                    await _writer.WriteLineAsync(command.Command);
+                    await _writer.WriteLineAsync(command);
                     await _writer.FlushAsync();
                 }
             }

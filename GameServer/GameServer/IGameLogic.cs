@@ -13,15 +13,17 @@
         /// <returns>
         /// Commands for the clients to build the initial game state
         /// </returns>
-        PlayerCommand[] Initialize(string[] players);
+        ICommand[] Initialize(string[] players);
 
         /// <summary>
         /// Uses the commands submitted by the players to determine the new game
         /// state and returns information about the new state
         /// </summary>
-        /// <param name="commands">Commands submitted by the players</param>
-        /// <returns>Commands for the clients to update their game state</returns>
-        PlayerCommand[] Update(PlayerCommand[] commands);
+        /// <param name="responses">Responses received from the players</param>
+        /// <returns>
+        /// Commands for the clients to update their game state
+        /// </returns>
+        ICommand[] Update(PlayerResponse[] responses);
 
         /// <summary>
         /// Returns the final information send to the clients
@@ -29,7 +31,7 @@
         /// <returns>
         /// Commands for the clients to determine the final game state
         /// </returns>
-        PlayerCommand[] Complete();
+        ICommand[] Complete();
 
         /// <summary>
         /// Indicates whether the game is completed

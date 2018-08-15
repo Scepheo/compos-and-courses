@@ -1,17 +1,17 @@
 ﻿namespace GameServer
 {
     /// <summary>
-    /// A command and the player that it will be send to/has been received from
+    /// A command for a specific player
     /// </summary>
-    public class PlayerCommand
+    public class PlayerCommand : ICommand
     {
         /// <summary>
-        /// The player who send/wil receive the command
+        /// The name of the player form whom the command is intended
         /// </summary>
-        public string Player { get; }
+        private readonly string _player;
 
         /// <summary>
-        /// The command
+        /// The actual command
         /// </summary>
         public string Command { get; }
 
@@ -19,15 +19,28 @@
         /// Instantiates a new command for a given player
         /// </summary>
         /// <param name="player">
-        /// The player who has send/will receive the command
+        /// The player who will receive the command
         /// </param>
         /// <param name="command">
-        /// The command to send to/received from the player
+        /// The command to send to the player
         /// </param>
         public PlayerCommand(string player, string command)
         {
-            Player = player;
+            _player = player;
             Command = command;
+        }
+
+        /// <summary>
+        /// Indicates whether the given player is the intended recipient for
+        /// this command
+        /// </summary>
+        /// <param name="playerName">The name of player</param>
+        /// <returns>
+        /// True if the player is the intended recipient, otherwise false
+        /// </returns>
+        public bool IsForPlayer(string playerName)
+        {
+            return string.Equals(playerName, _player);
         }
     }
 }

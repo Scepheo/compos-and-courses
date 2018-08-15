@@ -6,30 +6,30 @@ namespace GameServer.UnitTests.Util
     {
         public string[] Players { get; private set; }
 
-        public PlayerCommand[] InitialCommands { get; set; }
+        public ICommand[] InitialCommands { get; set; }
 
-        public PlayerCommand[] UpdateCommands { get; set; }
+        public ICommand[] UpdateCommands { get; set; }
 
-        public PlayerCommand[] CompleteCommands { get; set; }
+        public ICommand[] CompleteCommands { get; set; }
 
         public bool IsDone { get; set; }
 
         public GameResults Results { get; set; }
 
-        public PlayerCommand[] Initialize(string[] players)
+        public ICommand[] Initialize(string[] players)
         {
             Players = players;
-            return InitialCommands ?? Array.Empty<PlayerCommand>();
+            return InitialCommands ?? Array.Empty<ICommand>();
         }
 
-        public PlayerCommand[] Update(PlayerCommand[] commands)
+        public ICommand[] Update(PlayerResponse[] responses)
         {
-            return UpdateCommands ?? Array.Empty<PlayerCommand>();
+            return UpdateCommands ?? Array.Empty<ICommand>();
         }
 
-        public PlayerCommand[] Complete()
+        public ICommand[] Complete()
         {
-            return CompleteCommands ?? Array.Empty<PlayerCommand>();
+            return CompleteCommands ?? Array.Empty<ICommand>();
         }
 
         public GameResults GetResults()

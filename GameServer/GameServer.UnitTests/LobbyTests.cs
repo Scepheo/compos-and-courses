@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using GameServer.UnitTests.Util;
@@ -20,10 +19,9 @@ namespace GameServer.UnitTests
 
             var logic = new TestGame
             {
-                InitialCommands = new[]
+                InitialCommands = new ICommand[]
                 {
-                    new PlayerCommand(alice, startMessage),
-                    new PlayerCommand(bob, startMessage),
+                    new GlobalCommand(startMessage)
                 }
             };
 

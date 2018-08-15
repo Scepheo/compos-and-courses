@@ -130,10 +130,9 @@ namespace GameServer
 
         private static async Task InitializeClient(Client client)
         {
-            var command = new PlayerCommand(null, "LOBBY");
-            await client.Send(new [] { command });
+            await client.Send(new [] { "LOBBY" });
             var nameResponse = await client.Receive();
-            client.Name = nameResponse.Command;
+            client.Name = nameResponse.Response;
         }
     }
 }
