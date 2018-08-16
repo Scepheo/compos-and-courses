@@ -66,8 +66,9 @@ namespace GameServer
                 foreach (var command in commands)
                 {
                     await _writer.WriteLineAsync(command);
-                    await _writer.FlushAsync();
                 }
+
+                await _writer.FlushAsync();
             }
             catch (IOException)
             {
@@ -81,10 +82,19 @@ namespace GameServer
         /// </summary>
         public void Poll()
         {
-            var canRead = _tcpClient.Client.Poll(1, SelectMode.SelectRead);
-            var canWrite = _tcpClient.Client.Poll(1, SelectMode.SelectWrite);
+            // According to the documentation of Socket.Poll:
+            // https://docs.microsoft.com/en-us/dotnet/api/system.net.sockets.socket.poll
+            // calling Poll with SelectRead returns true in the following cases:
+            //
+            // 1. Listen has been called and a connection is pending
+            // 2. Data is available for reading
+            // 3. The connection has been closed, reset or terminated
+            //
+            // We know 1 does not apply, as we didn't call Listen, and we can
+            // test for 2 by checking whether any data is available.
 
-            if (!canRead || !canWrite)
+            if (_tcpClient.Client.Poll(1, SelectMode.SelectRead)
+                && _tcpClient.Client.Available == 0)
             {
                 OnDisconnect?.Invoke(this, this);
             }
@@ -95,9 +105,13 @@ namespace GameServer
         /// </summary>
         public void Dispose()
         {
+            _writer.Close();
             _writer.Dispose();
+            _reader.Close();
             _reader.Dispose();
+            _stream.Close();
             _stream.Dispose();
+            _tcpClient.Close();
             _tcpClient.Dispose();
         }
     }

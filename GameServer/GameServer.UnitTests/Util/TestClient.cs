@@ -27,18 +27,6 @@ namespace GameServer.UnitTests.Util
             _writer.Flush();
         }
 
-        public string[] Receive(int count)
-        {
-            var results = new string[count];
-
-            for (var i = 0; i < count; i++)
-            {
-                results[i] = _reader.ReadLine();
-            }
-
-            return results;
-        }
-
         public string Receive()
         {
             return _reader.ReadLine();
@@ -46,9 +34,13 @@ namespace GameServer.UnitTests.Util
 
         public void Dispose()
         {
+            _writer.Close();
             _writer.Dispose();
+            _reader.Close();
             _reader.Dispose();
+            _stream.Close();
             _stream.Dispose();
+            _tcpClient.Close();
             _tcpClient.Dispose();
         }
     }

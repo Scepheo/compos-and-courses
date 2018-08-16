@@ -62,12 +62,16 @@ namespace GameServer
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                foreach (var client in _clients)
-                {
-                    client.Poll();
-                }
-
+                PollAllClients();
                 await Task.Delay(_pollInterval, cancellationToken);
+            }
+        }
+
+        private void PollAllClients()
+        {
+            foreach (var client in _clients)
+            {
+                client.Poll();
             }
         }
 
@@ -97,7 +101,6 @@ namespace GameServer
         private async Task AcceptClient(TcpClient tcpClient)
         {
             var client = new Client(tcpClient);
-            _clients.Add(client);
             client.OnDisconnect += ClientDisconnectHandler;
             await InitializeClient(client);
             TryStartGame();
@@ -106,10 +109,13 @@ namespace GameServer
         private void ClientDisconnectHandler(object sender, Client client)
         {
             _clients.Remove(client);
+            client.Dispose();
         }
 
         private void TryStartGame()
         {
+            PollAllClients();
+
             if (_clients.Count < _playerCount)
             {
                 return;
@@ -128,11 +134,12 @@ namespace GameServer
             OnGameCreated?.Invoke(this, game);
         }
 
-        private static async Task InitializeClient(Client client)
+        private async Task InitializeClient(Client client)
         {
             await client.Send(new [] { "LOBBY" });
             var nameResponse = await client.Receive();
             client.Name = nameResponse.Response;
+            _clients.Add(client);
         }
     }
 }
