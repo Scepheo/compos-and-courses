@@ -14,7 +14,8 @@ namespace GameServer
         /// <summary>
         /// Array containing all names of the clients in the collection
         /// </summary>
-        public string[] Names => _clients.Select(client => client.Name).ToArray();
+        public string[] Names =>
+            _clients.Select(client => client.Name).ToArray();
 
         /// <summary>
         /// Instantiates a new collection containing the given clients
@@ -29,30 +30,35 @@ namespace GameServer
         /// Receives a string mesage from each client in the collection
         /// </summary>
         /// <returns>An array containing the messages received</returns>
-        public async Task<PlayerResponse[]> Receive()
+        public PlayerResponse[] Receive()
         {
-            var tasks = _clients.Select(client => client.Receive());
-            return await Task.WhenAll(tasks);
+            var responses = new PlayerResponse[_clients.Length];
+            Parallel.For(
+                0,
+                _clients.Length,
+                i => responses[i] = _clients[i].Receive());
+            return responses;
         }
 
         /// <summary>
         /// Sends one or more string messages to all clients
         /// </summary>
         /// <param name="commands">The messages to send</param>
-        public async Task Send(ICommand[] commands)
+        public void Send(ICommand[] commands)
         {
-            var tasks = _clients.Select(
-                async client =>
-                {
-                    var clientCommands = commands
-                        .Where(command => command.IsForPlayer(client.Name))
-                        .Select(command => command.Command)
-                        .ToArray();
+            Parallel.ForEach(
+                _clients,
+                client => SendToClient(client, commands));
+        }
 
-                    await client.Send(clientCommands);
-                });
+        private static void SendToClient(Client client, ICommand[] commands)
+        {
+            var clientCommands = commands
+                .Where(command => command.IsForPlayer(client.Name))
+                .Select(command => command.Command)
+                .ToArray();
 
-            await Task.WhenAll(tasks);
+            client.Send(clientCommands);
         }
 
         /// <summary>

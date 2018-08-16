@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace GameServer
 {
@@ -11,6 +10,9 @@ namespace GameServer
     {
         private readonly ClientCollection _players;
         private readonly IGameLogic _gameLogic;
+
+        private Thread _gameThread;
+        private bool _running;
 
         /// <summary>
         /// Called when the game is done
@@ -32,29 +34,39 @@ namespace GameServer
         /// Starts running the game, either until it is done or the token is
         /// cancelled
         /// </summary>
-        /// <param name="cancellationToken">
-        /// The token that can be used to cancel the task
-        /// </param>
-        /// <returns>
-        /// A task representing the asynchronous running of the game
-        /// </returns>
-        public async Task Start(CancellationToken cancellationToken)
+        public void Start()
+        {
+            _gameThread = new Thread(Run);
+            _running = true;
+            _gameThread.Start();
+        }
+
+        /// <summary>
+        /// Stops running the game
+        /// </summary>
+        public void Stop()
+        {
+            _running = false;
+            _gameThread.Join();
+            _gameThread = null;
+        }
+
+        private void Run()
         {
             var initialCommands = _gameLogic.Initialize(_players.Names);
-            await _players.Send(initialCommands);
+            _players.Send(initialCommands);
 
-            while (!cancellationToken.IsCancellationRequested
-                && !_gameLogic.IsDone)
+            while (_running && _gameLogic.IsDone)
             {
-                var commands = await _players.Receive();
+                var commands = _players.Receive();
                 var results = _gameLogic.Update(commands);
-                await _players.Send(results);
+                _players.Send(results);
             }
 
             if (_gameLogic.IsDone)
             {
                 var finalCommands = _gameLogic.Complete();
-                await _players.Send(finalCommands);
+                _players.Send(finalCommands);
                 var results = _gameLogic.GetResults();
                 OnGameEnd?.Invoke(this, results);
             }

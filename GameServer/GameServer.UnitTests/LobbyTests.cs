@@ -41,12 +41,12 @@ namespace GameServer.UnitTests
             lobby.OnGameCreated += (sender, game) =>
             {
                 createdGame = game;
-                _ = game.Start(source.Token);
+                game.Start();
             };
 
-            lobby.Start(source.Token);
+            lobby.Start();
 
-            var port = lobby.Port;
+            var port = await lobby.Port;
 
             string aliceInit = null,
                    bobInit = null,
@@ -86,7 +86,8 @@ namespace GameServer.UnitTests
             Assert.Contains(alice, logic.Players);
             Assert.Contains(bob, logic.Players);
 
-            source.Cancel();
+            lobby.Stop();
+            createdGame?.Stop();
         }
     }
 }

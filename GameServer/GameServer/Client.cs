@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
-using System.Threading.Tasks;
 
 namespace GameServer
 {
@@ -41,11 +40,11 @@ namespace GameServer
         /// Receives a string mesage from the client
         /// </summary>
         /// <returns>The received message</returns>
-        public async Task<PlayerResponse> Receive()
+        public PlayerResponse Receive()
         {
             try
             {
-                var response = await _reader.ReadLineAsync();
+                var response = _reader.ReadLine();
                 return new PlayerResponse(Name, response);
             }
             catch (IOException)
@@ -59,16 +58,16 @@ namespace GameServer
         /// Sends one or more string messages to the client
         /// </summary>
         /// <param name="commands">The messages to send</param>
-        public async Task Send(string[] commands)
+        public void Send(string[] commands)
         {
             try
             {
                 foreach (var command in commands)
                 {
-                    await _writer.WriteLineAsync(command);
+                    _writer.WriteLine(command);
                 }
 
-                await _writer.FlushAsync();
+                _writer.Flush();
             }
             catch (IOException)
             {

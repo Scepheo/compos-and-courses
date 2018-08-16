@@ -16,6 +16,17 @@ namespace GameServer.UnitTests
         private const string Paper = "PAPER";
         private const string Scissors = "SCISSORS";
 
+        private readonly Lobby _lobby;
+        private Game _game;
+
+        private readonly CancellationTokenSource _tokenSource =
+            new CancellationTokenSource();
+
+        public RockPaperScissorsTests()
+        {
+            _lobby = StartLobby();
+        }
+
         private static Config GetConfig() => new Config
         {
             GameLogicFactory = () => new RockPaperScissors(),
@@ -28,28 +39,30 @@ namespace GameServer.UnitTests
         {
             var lobby = new Lobby(GetConfig());
             lobby.OnGameCreated +=
-                (sender, game) => _ = game.Start(_tokenSource.Token);
-            lobby.Start(_tokenSource.Token);
+                (sender, game) =>
+                {
+                    _game = game;
+                    _game.Start();
+                };
+            lobby.Start();
             return lobby;
         }
-
-        private readonly CancellationTokenSource _tokenSource =
-            new CancellationTokenSource();
 
         [Fact]
         public async Task RockBeatsScissors()
         {
             // Arrange
             var lobby = StartLobby();
+            var port = await lobby.Port;
             const string expectedResult = "WINNER: " + Alice;
 
             // Act
             string aliceResult = null, bobResult = null;
             var alice = Task.Run(
-                () => aliceResult = Play(Alice, lobby.Port, Rock, Scissors),
+                () => aliceResult = Play(Alice, port, Rock, Scissors),
                 _tokenSource.Token);
             var bob = Task.Run(
-                () => bobResult = Play(Bob, lobby.Port, Rock, Paper),
+                () => bobResult = Play(Bob, port, Rock, Paper),
                 _tokenSource.Token);
 
             await Task.WhenAll(alice, bob);
@@ -64,15 +77,16 @@ namespace GameServer.UnitTests
         {
             // Arrange
             var lobby = StartLobby();
+            var port = await lobby.Port;
             const string expectedResult = "WINNER: " + Alice;
 
             // Act
             string aliceResult = null, bobResult = null;
             var alice = Task.Run(
-                () => aliceResult = Play(Alice, lobby.Port, Rock, Scissors),
+                () => aliceResult = Play(Alice, port, Rock, Scissors),
                 _tokenSource.Token);
             var bob = Task.Run(
-                () => bobResult = Play(Bob, lobby.Port, Rock, Paper),
+                () => bobResult = Play(Bob, port, Rock, Paper),
                 _tokenSource.Token);
             await Task.WhenAll(alice, bob);
 
@@ -86,7 +100,8 @@ namespace GameServer.UnitTests
         {
             // Arrange
             var lobby = StartLobby();
-            const string expectedResult = "WINNER: " + Bob;
+            var port = await lobby.Port;
+            const string expectedResult = "WINNER: " + RockPaperScissorsTests.Bob;
             var gate = new TaskCompletionSource<bool>();
 
             // Act
@@ -95,7 +110,7 @@ namespace GameServer.UnitTests
             var alice = Task.Run(
                 () =>
                 {
-                    using (var client = new TestClient(lobby.Port))
+                    using (var client = new TestClient(port))
                     {
                         _ = client.Receive();
                         client.Send(Alice);
@@ -108,7 +123,7 @@ namespace GameServer.UnitTests
                 async () =>
                 {
                     await gate.Task;
-                    bobResult = Play(Bob, lobby.Port, Paper);
+                    bobResult = Play(Bob, port, Paper);
                 },
                 _tokenSource.Token);
 
@@ -116,7 +131,7 @@ namespace GameServer.UnitTests
                 async () =>
                 {
                     await gate.Task;
-                    charlieResult = Play(Charlie, lobby.Port, Rock);
+                    charlieResult = Play(Charlie, port, Rock);
                 },
                 _tokenSource.Token);
 
@@ -154,8 +169,10 @@ namespace GameServer.UnitTests
 
         public void Dispose()
         {
+            _lobby.Stop();
+            _game?.Stop();
             _tokenSource.Cancel();
-            _tokenSource?.Dispose();
+            _tokenSource.Dispose();
         }
     }
 }

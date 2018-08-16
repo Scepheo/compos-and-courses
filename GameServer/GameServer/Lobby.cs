@@ -20,6 +20,15 @@ namespace GameServer
         private readonly int _playerCount;
         private readonly Func<IGameLogic> _gameLogicFactory;
 
+        private Thread _listenThread;
+        private bool _listening;
+
+        private readonly ReaderWriterLockSlim _clientLock =
+            new ReaderWriterLockSlim();
+
+        private readonly TaskCompletionSource<int> _portTaskCompletionSource =
+            new TaskCompletionSource<int>();
+
         /// <summary>
         /// Called when a new game has been created and is ready to be started
         /// </summary>
@@ -29,7 +38,7 @@ namespace GameServer
         /// The port the lobby is listening on. Differs from the configured port
         /// when that is set to 0, as it will then choose its own port.
         /// </summary>
-        public int Port { get; private set; }
+        public Task<int> Port => _portTaskCompletionSource.Task;
 
         /// <summary>
         /// Creates a new lobby
@@ -42,6 +51,11 @@ namespace GameServer
             _pollInterval = config.LobbyPollInterval;
             _playerCount = config.PlayerCount;
             _gameLogicFactory = config.GameLogicFactory;
+
+            if (config.ServerPort != 0)
+            {
+                _portTaskCompletionSource.SetResult(config.ServerPort);
+            }
         }
 
         /// <summary>
@@ -49,66 +63,75 @@ namespace GameServer
         /// clients, initializing them and tries to start a new game whenever
         /// there are enough players.
         /// </summary>
-        /// <param name="cancellationToken">
-        /// Token that can be used to cancel the task
-        /// </param>
-        public void Start(CancellationToken cancellationToken)
+        public void Start()
         {
-            _ = Poll(cancellationToken);
-            _ = Listen(cancellationToken);
+            _listenThread = new Thread(Listen);
+            _listening = true;
+            _listenThread.Start();
         }
 
-        private async Task Poll(CancellationToken cancellationToken)
+        /// <summary>
+        /// Stops the lobby listening to clients.
+        /// </summary>
+        public void Stop()
         {
-            while (!cancellationToken.IsCancellationRequested)
-            {
-                PollAllClients();
-                await Task.Delay(_pollInterval, cancellationToken);
-            }
+            _listening = false;
+            _listenThread.Join(_pollInterval);
+            _listenThread = null;
         }
 
         private void PollAllClients()
         {
-            foreach (var client in _clients)
+            _clientLock.EnterReadLock();
+            var clients = _clients.ToArray();
+            _clientLock.ExitReadLock();
+
+            foreach (var client in clients)
             {
                 client.Poll();
             }
         }
 
-        private async Task Listen(CancellationToken cancellationToken)
+        private void Listen()
         {
             _tcpListener.Start();
 
             if (_tcpListener.LocalEndpoint is IPEndPoint ipEndPoint)
             {
-                Port = ipEndPoint.Port;
+                _portTaskCompletionSource.SetResult(ipEndPoint.Port);
             }
 
-            while (!cancellationToken.IsCancellationRequested)
+            while (_listening)
             {
                 if (_tcpListener.Pending())
                 {
-                    var tcpClient = await _tcpListener.AcceptTcpClientAsync();
-                    await AcceptClient(tcpClient);
+                    var tcpClient = _tcpListener.AcceptTcpClient();
+                    ThreadPool.QueueUserWorkItem(
+                        AcceptClient,
+                        tcpClient,
+                        false);
                 }
                 else
                 {
-                    await Task.Delay(_pollInterval, cancellationToken);
+                    Thread.Sleep(_pollInterval);
                 }
             }
         }
 
-        private async Task AcceptClient(TcpClient tcpClient)
+        private void AcceptClient(TcpClient tcpClient)
         {
             var client = new Client(tcpClient);
             client.OnDisconnect += ClientDisconnectHandler;
-            await InitializeClient(client);
+            InitializeClient(client);
             TryStartGame();
         }
 
         private void ClientDisconnectHandler(object sender, Client client)
         {
+            _clientLock.EnterWriteLock();
             _clients.Remove(client);
+            _clientLock.ExitWriteLock();
+
             client.Dispose();
         }
 
@@ -121,8 +144,10 @@ namespace GameServer
                 return;
             }
 
+            _clientLock.EnterWriteLock();
             var players = _clients.Take(_playerCount).ToArray();
             _clients.RemoveRange(0, _playerCount);
+            _clientLock.ExitWriteLock();
 
             foreach (var player in players)
             {
@@ -134,12 +159,15 @@ namespace GameServer
             OnGameCreated?.Invoke(this, game);
         }
 
-        private async Task InitializeClient(Client client)
+        private void InitializeClient(Client client)
         {
-            await client.Send(new [] { "LOBBY" });
-            var nameResponse = await client.Receive();
+            client.Send(new[] { "LOBBY" });
+            var nameResponse = client.Receive();
             client.Name = nameResponse.Response;
+
+            _clientLock.EnterWriteLock();
             _clients.Add(client);
+            _clientLock.ExitWriteLock();
         }
     }
 }
