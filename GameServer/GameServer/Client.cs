@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace GameServer
 {
@@ -44,6 +45,11 @@ namespace GameServer
         {
             try
             {
+                while (!_stream.DataAvailable)
+                {
+                    Thread.Sleep(10);
+                }
+
                 var response = _reader.ReadLine();
                 return new PlayerResponse(Name, response);
             }

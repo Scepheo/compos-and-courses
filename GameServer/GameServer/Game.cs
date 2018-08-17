@@ -53,10 +53,16 @@ namespace GameServer
 
         private void Run()
         {
+#if DEBUG
+            // Give the thread a name, for ease of debugging
+            var names = string.Join(", ", _players.Names);
+            Thread.CurrentThread.Name = $"Game ({names})";
+#endif
+
             var initialCommands = _gameLogic.Initialize(_players.Names);
             _players.Send(initialCommands);
 
-            while (_running && _gameLogic.IsDone)
+            while (_running && !_gameLogic.IsDone)
             {
                 var commands = _players.Receive();
                 var results = _gameLogic.Update(commands);

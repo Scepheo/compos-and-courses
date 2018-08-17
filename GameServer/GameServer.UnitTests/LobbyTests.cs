@@ -54,22 +54,22 @@ namespace GameServer.UnitTests
                    bobStart = null;
 
             var aliceTask = Task.Run(
-                () =>
+                async () =>
                 {
                     var client = new TestClient(port);
-                    aliceInit = client.Receive();
-                    client.Send(alice);
-                    aliceStart = client.Receive();
+                    aliceInit = await client.Receive();
+                    await client.Send(alice);
+                    aliceStart = await client.Receive();
                 },
                 source.Token);
 
             var bobTask = Task.Run(
-                () =>
+                async () =>
                 {
                     var client = new TestClient(port);
-                    bobInit = client.Receive();
-                    client.Send(bob);
-                    bobStart = client.Receive();
+                    bobInit = await client.Receive();
+                    await client.Send(bob);
+                    bobStart = await client.Receive();
                 },
                 source.Token);
 

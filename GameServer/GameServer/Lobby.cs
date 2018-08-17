@@ -94,6 +94,11 @@ namespace GameServer
 
         private void Listen()
         {
+#if DEBUG
+            // Give the thread a name, for ease of debugging
+            Thread.CurrentThread.Name = "Lobby listen";
+#endif
+
             _tcpListener.Start();
 
             if (_tcpListener.LocalEndpoint is IPEndPoint ipEndPoint)
@@ -139,24 +144,27 @@ namespace GameServer
         {
             PollAllClients();
 
-            if (_clients.Count < _playerCount)
+            _clientLock.EnterUpgradeableReadLock();
+
+            if (_clients.Count >= _playerCount)
             {
-                return;
+                var players = _clients.Take(_playerCount).ToArray();
+
+                _clientLock.EnterWriteLock();
+                _clients.RemoveRange(0, _playerCount);
+                _clientLock.ExitWriteLock();
+
+                foreach (var player in players)
+                {
+                    player.OnDisconnect -= ClientDisconnectHandler;
+                }
+
+                var collection = new ClientCollection(players);
+                var game = new Game(collection, _gameLogicFactory());
+                OnGameCreated?.Invoke(this, game);
             }
 
-            _clientLock.EnterWriteLock();
-            var players = _clients.Take(_playerCount).ToArray();
-            _clients.RemoveRange(0, _playerCount);
-            _clientLock.ExitWriteLock();
-
-            foreach (var player in players)
-            {
-                player.OnDisconnect -= ClientDisconnectHandler;
-            }
-
-            var collection = new ClientCollection(players);
-            var game = new Game(collection, _gameLogicFactory());
-            OnGameCreated?.Invoke(this, game);
+            _clientLock.ExitUpgradeableReadLock();
         }
 
         private void InitializeClient(Client client)
@@ -164,6 +172,11 @@ namespace GameServer
             client.Send(new[] { "LOBBY" });
             var nameResponse = client.Receive();
             client.Name = nameResponse.Response;
+
+#if DEBUG
+            // Give the thread a name, for ease of debugging
+            Thread.CurrentThread.Name = $"Accept client ({client.Name})";
+#endif
 
             _clientLock.EnterWriteLock();
             _clients.Add(client);

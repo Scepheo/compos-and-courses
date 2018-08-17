@@ -59,10 +59,10 @@ namespace GameServer.UnitTests
             // Act
             string aliceResult = null, bobResult = null;
             var alice = Task.Run(
-                () => aliceResult = Play(Alice, port, Rock, Scissors),
+                async () => aliceResult = await Play(Alice, port, Rock, Scissors),
                 _tokenSource.Token);
             var bob = Task.Run(
-                () => bobResult = Play(Bob, port, Rock, Paper),
+                async () => bobResult = await Play(Bob, port, Rock, Paper),
                 _tokenSource.Token);
 
             await Task.WhenAll(alice, bob);
@@ -83,10 +83,10 @@ namespace GameServer.UnitTests
             // Act
             string aliceResult = null, bobResult = null;
             var alice = Task.Run(
-                () => aliceResult = Play(Alice, port, Rock, Scissors),
+                async () => aliceResult = await Play(Alice, port, Rock, Scissors),
                 _tokenSource.Token);
             var bob = Task.Run(
-                () => bobResult = Play(Bob, port, Rock, Paper),
+                async () => bobResult = await Play(Bob, port, Rock, Paper),
                 _tokenSource.Token);
             await Task.WhenAll(alice, bob);
 
@@ -101,19 +101,19 @@ namespace GameServer.UnitTests
             // Arrange
             var lobby = StartLobby();
             var port = await lobby.Port;
-            const string expectedResult = "WINNER: " + RockPaperScissorsTests.Bob;
+            const string expectedResult = "WINNER: " + Bob;
             var gate = new TaskCompletionSource<bool>();
 
             // Act
             string bobResult = null, charlieResult = null;
 
             var alice = Task.Run(
-                () =>
+                async () =>
                 {
                     using (var client = new TestClient(port))
                     {
                         _ = client.Receive();
-                        client.Send(Alice);
+                        await client.Send(Alice);
                     }
 
                     gate.SetResult(true);
@@ -123,7 +123,7 @@ namespace GameServer.UnitTests
                 async () =>
                 {
                     await gate.Task;
-                    bobResult = Play(Bob, port, Paper);
+                    bobResult = await Play(Bob, port, Paper);
                 },
                 _tokenSource.Token);
 
@@ -131,7 +131,7 @@ namespace GameServer.UnitTests
                 async () =>
                 {
                     await gate.Task;
-                    charlieResult = Play(Charlie, port, Rock);
+                    charlieResult = await Play(Charlie, port, Rock);
                 },
                 _tokenSource.Token);
 
@@ -142,27 +142,27 @@ namespace GameServer.UnitTests
             Assert.Equal(expectedResult, charlieResult);
         }
 
-        private static string Play(string name, int port, params string[] plays)
+        private static async Task<string> Play(string name, int port, params string[] plays)
         {
             using (var client = new TestClient(port))
             {
-                var lobby = client.Receive();
+                var lobby = await client.Receive();
                 Assert.Equal("LOBBY", lobby);
 
-                client.Send(name);
+                await client.Send(name);
 
-                var start = client.Receive();
+                var start = await client.Receive();
                 Assert.Equal("START", start);
 
                 for (var i = 0; i < plays.Length; i++)
                 {
-                    client.Send(plays[i]);
-                    var response = client.Receive();
+                    await client.Send(plays[i]);
+                    var response = await client.Receive();
                     var expected = i < plays.Length - 1 ? "AGAIN" : "END";
                     Assert.Equal(expected, response);
                 }
 
-                var result = client.Receive();
+                var result = await client.Receive();
                 return result;
             }
         }

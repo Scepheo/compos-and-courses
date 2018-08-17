@@ -2,6 +2,7 @@
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Threading.Tasks;
 
 namespace GameServer.UnitTests.Util
 {
@@ -21,15 +22,15 @@ namespace GameServer.UnitTests.Util
             _writer = new StreamWriter(_stream);
         }
 
-        public void Send(string command)
+        public async Task Send(string command)
         {
-            _writer.WriteLine(command);
-            _writer.Flush();
+            await _writer.WriteLineAsync(command);
+            await _writer.FlushAsync();
         }
 
-        public string Receive()
+        public async Task<string> Receive()
         {
-            return _reader.ReadLine();
+            return await _reader.ReadLineAsync();
         }
 
         public void Dispose()
