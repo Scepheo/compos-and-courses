@@ -29,9 +29,8 @@ namespace GameServer.UnitTests
 
         private static Config GetConfig() => new Config
         {
-            GameLogicFactory = () => new RockPaperScissors(),
+            GameFactory = new RockPaperScissors.Factory(),
             LobbyPollInterval = TimeSpan.FromMilliseconds(10),
-            PlayerCount = 2,
             ServerPort = 0
         };
 

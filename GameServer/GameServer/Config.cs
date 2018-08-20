@@ -21,14 +21,8 @@ namespace GameServer
         public TimeSpan LobbyPollInterval { get; set; }
 
         /// <summary>
-        /// Number of clients required to start a game
+        /// The game factory that will be used to instantiate new games
         /// </summary>
-        public int PlayerCount { get; set; }
-
-        /// <summary>
-        /// Factory function to get a new instance of the game logic (i.e. start
-        /// a new game)
-        /// </summary>
-        public Func<IGameLogic> GameLogicFactory { get; set; }
+        public IGameFactory GameFactory { get; set; }
     }
 }

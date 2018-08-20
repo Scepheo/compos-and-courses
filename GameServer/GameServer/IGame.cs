@@ -4,7 +4,7 @@
     /// Interface that needs to be implemented by any game logic in order to be
     /// able to run it on the server
     /// </summary>
-    public interface IGameLogic
+    public interface IGame
     {
         /// <summary>
         /// Returns the initial information send to the clients
@@ -43,5 +43,13 @@
         /// </summary>
         /// <returns>The results of the game</returns>
         GameResults GetResults();
+
+        /// <summary>
+        /// Used to indicate to the game that the given player has disconnect
+        /// </summary>
+        /// <param name="playerName">
+        /// The name of the player that has disconnected
+        /// </param>
+        void PlayerDisconnected(string playerName);
     }
 }

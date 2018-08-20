@@ -17,8 +17,7 @@ namespace GameServer
         private readonly TcpListener _tcpListener;
         private readonly List<Client> _clients;
         private readonly TimeSpan _pollInterval;
-        private readonly int _playerCount;
-        private readonly Func<IGameLogic> _gameLogicFactory;
+        private readonly IGameFactory _gameFactory;
 
         private Thread _listenThread;
         private bool _listening;
@@ -49,8 +48,7 @@ namespace GameServer
             _tcpListener = new TcpListener(IPAddress.Any, config.ServerPort);
             _clients = new List<Client>();
             _pollInterval = config.LobbyPollInterval;
-            _playerCount = config.PlayerCount;
-            _gameLogicFactory = config.GameLogicFactory;
+            _gameFactory = config.GameFactory;
 
             if (config.ServerPort != 0)
             {
@@ -111,10 +109,7 @@ namespace GameServer
                 if (_tcpListener.Pending())
                 {
                     var tcpClient = _tcpListener.AcceptTcpClient();
-                    ThreadPool.QueueUserWorkItem(
-                        AcceptClient,
-                        tcpClient,
-                        false);
+                    ThreadPool.QueueUserWorkItem(AcceptClient, tcpClient);
                 }
                 else
                 {
@@ -123,8 +118,9 @@ namespace GameServer
             }
         }
 
-        private void AcceptClient(TcpClient tcpClient)
+        private void AcceptClient(object obj)
         {
+            var tcpClient = (TcpClient)obj;
             var client = new Client(tcpClient);
             client.OnDisconnect += ClientDisconnectHandler;
             InitializeClient(client);
@@ -146,12 +142,12 @@ namespace GameServer
 
             _clientLock.EnterUpgradeableReadLock();
 
-            if (_clients.Count >= _playerCount)
+            if (_clients.Count >= _gameFactory.PlayerCount)
             {
-                var players = _clients.Take(_playerCount).ToArray();
+                var players = _clients.Take(_gameFactory.PlayerCount).ToArray();
 
                 _clientLock.EnterWriteLock();
-                _clients.RemoveRange(0, _playerCount);
+                _clients.RemoveRange(0, _gameFactory.PlayerCount);
                 _clientLock.ExitWriteLock();
 
                 foreach (var player in players)
@@ -160,7 +156,7 @@ namespace GameServer
                 }
 
                 var collection = new ClientCollection(players);
-                var game = new Game(collection, _gameLogicFactory());
+                var game = new Game(collection, _gameFactory.CreateGame());
                 OnGameCreated?.Invoke(this, game);
             }
 

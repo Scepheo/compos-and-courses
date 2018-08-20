@@ -9,7 +9,7 @@ namespace GameServer
     public class Game
     {
         private readonly ClientCollection _players;
-        private readonly IGameLogic _gameLogic;
+        private readonly IGame _gameLogic;
 
         private Thread _gameThread;
         private bool _running;
@@ -24,7 +24,7 @@ namespace GameServer
         /// </summary>
         /// <param name="players">The clients in the game</param>
         /// <param name="gameLogic">The game logic to be used</param>
-        internal Game(ClientCollection players, IGameLogic gameLogic)
+        internal Game(ClientCollection players, IGame gameLogic)
         {
             _players = players;
             _gameLogic = gameLogic;

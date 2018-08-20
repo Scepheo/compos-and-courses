@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\GameServer\GameServer.csproj" />
+    <ProjectReference Include="..\RockPaperScissors\RockPaperScissors.csproj" />
   </ItemGroup>
 
 </Project>
