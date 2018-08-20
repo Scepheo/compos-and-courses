@@ -3,7 +3,7 @@
     /// <summary>
     /// A response and the player that it has been received from
     /// </summary>
-    public sealed class PlayerResponse
+    public class PlayerResponse
     {
         /// <summary>
         /// The player who sent the response
@@ -24,7 +24,7 @@
         /// <param name="response">
         /// The response to received from the player
         /// </param>
-        internal PlayerResponse(string player, string response)
+        public PlayerResponse(string player, string response)
         {
             Player = player;
             Response = response;
