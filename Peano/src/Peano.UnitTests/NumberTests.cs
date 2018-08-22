@@ -245,16 +245,18 @@ namespace Tests
             Assert.Equal(i.ToString(), result);
         }
 
-        [Fact]
-        public void Parse()
+        public static IEnumerable<object[]> ParseValues =>
+            from index in Enumerable.Range(0, 11)
+            let value = index * 7
+            let str = value.ToString()
+            select new object[] { value };
+
+        [Theory, MemberData(nameof(ParseValues))]
+        public void Parse(string str)
         {
-            for (var i = 0; i <= 70; i += 7)
-            {
-                var str = i.ToString();
-                var result = Peano.parse(str);
-                var actual = ToInt(result);
-                Assert.Equal(i, actual);
-            }
+            var result = Peano.parse(str);
+            var actual = ToInt(result);
+            Assert.Equal(int.Parse(str), actual);
         }
 
         [Fact]

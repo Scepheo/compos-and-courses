@@ -1,4 +1,4 @@
-# Peano numbers in F#
+# Peano numbers in F&num;
 
 A short course/tutorial on implementing our own number system, from scratch, in
 F#. We will be building our numbers on the [Peano axioms][wiki], without using
@@ -746,6 +746,183 @@ public void Division(int left, int right)
     // Test for correct division here
 }
 ```
+
+## All that remains
+
+Where division tells you how often the number `y` fits in the number `x`, modulo
+tells you which number you'd have left if you actually tried. It's used often
+in programming, and we'll be needing it later, so we're going to implement it.
+
+As you might have guessed from its relation to division, modulo can also be
+implemented with repeated subtraction. Except where division is _how often_ you
+can subtract `y` from `x` before it becomes impossible, module is the number you
+have left at that point. So, let's write this down in some rules:
+
+> 1. _x % 0_ is impossible, throw an exception (can't divide by zero, so you
+  also can't have anything left)
+> 2. _x % y, y > x = x_ (can't subtract `y` from `x` anymore)
+> 3. _x % y, x &#x2264; y = (x - y) % y_
+
+I won't be providing the code this time, but as a hint: you'll probably want to
+use `if-then-else` statements. And remember: just like in C#, you can put an
+`if`-clause in the `else`-clause to make an `else-if`.
+
+Here are some tests you can use to ensure that your code is correct:
+
+``` csharp
+[Fact]
+public void Modulo_CantDivideByZero()
+{
+    Action action = () => Peano.modulo(Peano.Number.Zero, Peano.Number.Zero);
+    Assert.Throws<InvalidOperationException>(action);
+}
+
+[Theory]
+[InlineData(1, 1)]
+[InlineData(5, 3)]
+[InlineData(15, 3)]
+[InlineData(100, 9)]
+public void Modulo(int left, int right)
+{
+    var expected = left % right;
+    var leftNumber = ToNumber(left);
+    var rightNumber = ToNumber(right);
+    var result = Peano.modulo(leftNumber, rightNumber);
+    var actual = ToInt(result);
+    Assert.Equal(expected, actual);
+}
+```
+
+## Show your work
+
+Of course, we're still missing one of the most important things we can do with
+the "normal" integer types in programming language: turning them into strings so
+we can print them. So, obviously, that's what we're going to do now.
+
+### Digits
+
+In order to be able to print a whole number, we're first going to have to be
+able to print a single digit. We can use the number variables we've defined at
+the start of the course for this. The principle is simple: our function
+`printDigit` takes a number. If it's equal to `Zero`, we return the string
+`"0"`, Else, if it's equal to `one`, we return the string `"1"`, and so on until
+we get to nine. In all other cases (i.e. the number is 10 or greater), we throw
+an exception.
+
+And here are some more tests for you to verify your code works correctly.
+
+``` csharp
+[Fact]
+public void PrintDigit_FailsForMoreThanNine()
+{
+    var number = ToNumber(15);
+    Action action = () => Peano.printDigit(number);
+    Assert.Throws<InvalidOperationException>(action);
+}
+
+public static IEnumerable<object[]> PrintDigitValues =>
+    from value in Enumerable.Range(0, 10)
+    select new object[] { value };
+
+[Theory, MemberData(nameof(PrintDigitValues))]
+public void PrintDigit(int i)
+{
+    var number = ToNumber(i);
+    var result = Peano.printDigit(number);
+    Assert.Equal(i.ToString(), result);
+}
+```
+
+### Numbers
+
+And now, to combine it all! So, how do we print a number? Well, normally you
+check how often each power of ten fits in the number, then you write down those
+digits in order of greatest power of ten to smallest (i.e. 1). So,
+one-hundred-and-twenty-three is _1 * 100 + 2 * 10 + 3 * 1_, which becomes _123_.
+We don't write down any leading zeroes, unless the number is zero, in which case
+we just write a zero.
+
+Obviously, this is still miles away from actual code (apart from the zero bit,
+which is perfect as-is), and we're going to have to do things slightly
+differently. Starting with the largest digit is tricky, for one, as that
+requires us to first find out what the largest power of ten is that still fits
+in our number. No, there's a simpler way: start with the last digit, then
+prepend the rest.
+
+So, how do you get the last digit? With `modulo`, of course! How do we print
+the last digit? With `printDigit`, of course! How do we get the rest of the
+number? With `divide`, of course! How to we print the rest of the number? With
+the `print` function we're currently writing, of course! Recursion!
+
+This might be a tricky one, but I'm confident you can do it. To be sure,
+however, make sure the following tests actually pass:
+
+``` csharp
+public static IEnumerable<object[]> PrintValues =>
+    from index in Enumerable.Range(0, 11)
+    let value = index * 7
+    select new object[] { value };
+
+[Theory, MemberData(nameof(PrintValues))]
+public void Print(int i)
+{
+    var number = ToNumber(i);
+    var result = Peano.print(number);
+    Assert.Equal(i.ToString(), result);
+}
+```
+
+## Taking it all in
+
+Writing these numbers out is nice, but what about reading them in? The principle
+of parsing is very similar to printing: if the string is just a single digit,
+return that digit (again, we've got `one` through `nine` defined to help us
+with this). Otherwise, parse the last digit and the rest of the number
+separately, then combine their results.
+
+So now, as a last exercise, go and implement a `parse` function. Here's some
+more tests to help you verify your solution.
+
+``` csharp
+public static IEnumerable<object[]> ParseValues =>
+    from index in Enumerable.Range(0, 11)
+    let value = index * 7
+    let str = value.ToString()
+    select new object[] { value };
+
+[Theory, MemberData(nameof(ParseValues))]
+public void Parse(string str)
+{
+    var result = Peano.parse(str);
+    var actual = ToInt(result);
+    Assert.Equal(int.Parse(str), actual);
+}
+```
+
+## Proof of concept
+
+Here's a nice final test to show that all the functions work, and that the
+numbers act like, well, numbers. Assuming all the previous tests pass, this
+will just work.
+
+``` csharp
+[Fact]
+public void CombineItAll()
+{
+    const int expected = 12 * 34 - 56 + 78 / 90;
+
+    var result = Peano.add(
+        Peano.subtract(Peano.multiply(Peano.parse("12"), Peano.parse("34")), Peano.parse("56")),
+        Peano.divide(Peano.parse("78"), Peano.parse("90")));
+
+    var actual = Peano.print(result);
+
+    Assert.Equal(expected.ToString(), actual);
+}
+```
+
+Well, that's it for this course. I hope you enjoyed writing your own number
+system, and I hope you enjoyed using F#.
 
 [wiki]: https://en.wikipedia.org/wiki/Peano_axioms
 [discriminated-union]: https://docs.microsoft.com/en-us/dotnet/fsharp/language-reference/discriminated-unions
